@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="zh-TW" data-style="a">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<title>呼吸治療臨床情境練習</title>
+<!--
+  研究版學習網頁（前端）
+  - 這個檔案會公開在網路上，裡面只放畫面程式和後端網址，不放題目、答案、密碼或解鎖碼。
+  - 教材和題目在學生登入、主題開放後，才由後端（Google Apps Script）傳過來。
+  - 外觀：上面 <html> 的 data-style 是風格，"a" 臨床監視器、"b" 清爽學習、"c" 沉穩專業。
+  - 後端網址在下方程式最前面的 API_URL。
+-->
+<style>
+:root {
+  color-scheme: light dark;
+  --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Heiti TC", system-ui, sans-serif;
+  --serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+/* ========== 風格 A：臨床監視器 ========== */
+:root[data-style="a"] {
+  --bg: #edf1f5; --surface: #ffffff; --surface-2: #f3f6f9; --ink: #0f172a; --muted: #4a5a70; --line: #d8e0e9;
+  --accent: #0e7490; --accent-ink: #ffffff; --accent-soft: #e0f2f6; --accent-text: #0e7490;
+  --ok: #146c35; --ok-soft: #e8f6ee; --bad: #b42318; --bad-soft: #fdeeec; --warn: #a15c07; --warn-soft: #fdf3e2;
+  --radius: 14px; --radius-sm: 10px; --shadow: 0 1px 2px rgba(15, 23, 42, .06); --ring-w: 4px;
+  --head-font: var(--sans);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-style="a"]:not([data-theme="light"]) {
+    --bg: #0a101c; --surface: #111a2b; --surface-2: #172338; --ink: #e6edf7; --muted: #9db0c8; --line: #24344e;
+    --accent: #22d3ee; --accent-ink: #052530; --accent-soft: rgba(34, 211, 238, .14); --accent-text: #67e8f9;
+    --ok: #4ade80; --ok-soft: rgba(74, 222, 128, .13); --bad: #f87171; --bad-soft: rgba(248, 113, 113, .13);
+    --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, .13);
+    --shadow: none;
+  }
+}
+:root[data-style="a"][data-theme="dark"] {
+  --bg: #0a101c; --surface: #111a2b; --surface-2: #172338; --ink: #e6edf7; --muted: #9db0c8; --line: #24344e;
+  --accent: #22d3ee; --accent-ink: #052530; --accent-soft: rgba(34, 211, 238, .14); --accent-text: #67e8f9;
+  --ok: #4ade80; --ok-soft: rgba(74, 222, 128, .13); --bad: #f87171; --bad-soft: rgba(248, 113, 113, .13);
+  --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, .13);
+  --shadow: none;
+}
+
+/* ========== 風格 B：清爽學習 ========== */
+:root[data-style="b"] {
+  --bg: #f2f7f1; --surface: #ffffff; --surface-2: #edf5ec; --ink: #16211a; --muted: #506055; --line: #dce8db;
+  --accent: #15803d; --accent-ink: #ffffff; --accent-soft: #e3f3e6; --accent-text: #146c35;
+  --ok: #146c35; --ok-soft: #e6f4ea; --bad: #b42318; --bad-soft: #fdeeec; --warn: #a15c07; --warn-soft: #fdf3e2;
+  --radius: 22px; --radius-sm: 16px; --ring-w: 6px;
+  --shadow: 0 1px 2px rgba(22, 33, 26, .05), 0 6px 16px rgba(22, 33, 26, .06);
+  --head-font: var(--sans);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-style="b"]:not([data-theme="light"]) {
+    --bg: #0d140f; --surface: #141d16; --surface-2: #1a261c; --ink: #e6f1e7; --muted: #a2b5a4; --line: #263528;
+    --accent: #4ade80; --accent-ink: #052e14; --accent-soft: rgba(74, 222, 128, .13); --accent-text: #6ee79b;
+    --ok: #4ade80; --ok-soft: rgba(74, 222, 128, .13); --bad: #f87171; --bad-soft: rgba(248, 113, 113, .13);
+    --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, .13);
+    --shadow: none;
+  }
+}
+:root[data-style="b"][data-theme="dark"] {
+  --bg: #0d140f; --surface: #141d16; --surface-2: #1a261c; --ink: #e6f1e7; --muted: #a2b5a4; --line: #263528;
+  --accent: #4ade80; --accent-ink: #052e14; --accent-soft: rgba(74, 222, 128, .13); --accent-text: #6ee79b;
+  --ok: #4ade80; --ok-soft: rgba(74, 222, 128, .13); --bad: #f87171; --bad-soft: rgba(248, 113, 113, .13);
+  --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, .13);
+  --shadow: none;
+}
+
+/* ========== 風格 C：沉穩專業 ========== */
+:root[data-style="c"] {
+  --bg: #f5f2ec; --surface: #fffdf8; --surface-2: #f1ede5; --ink: #1d1b18; --muted: #5e584f; --line: #e0d9ce;
+  --accent: #1e4f7a; --accent-ink: #ffffff; --accent-soft: #e6edf4; --accent-text: #1e4f7a;
+  --ok: #1f6b3a; --ok-soft: #e7f2ea; --bad: #a3261b; --bad-soft: #f8e9e6; --warn: #8a5a12; --warn-soft: #f6eedd;
+  --radius: 8px; --radius-sm: 6px; --shadow: none; --ring-w: 3px;
+  --head-font: var(--serif);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-style="c"]:not([data-theme="light"]) {
+    --bg: #141311; --surface: #1c1b18; --surface-2: #24221e; --ink: #ece7df; --muted: #aaa295; --line: #36322b;
+    --accent: #8fb8de; --accent-ink: #0d1f30; --accent-soft: rgba(143, 184, 222, .13); --accent-text: #a9c9e8;
+    --ok: #7cc79a; --ok-soft: rgba(124, 199, 154, .12); --bad: #f08f84; --bad-soft: rgba(240, 143, 132, .12);
+    --warn: #e3b866; --warn-soft: rgba(227, 184, 102, .12);
+  }
+}
+:root[data-style="c"][data-theme="dark"] {
+  --bg: #141311; --surface: #1c1b18; --surface-2: #24221e; --ink: #ece7df; --muted: #aaa295; --line: #36322b;
+  --accent: #8fb8de; --accent-ink: #0d1f30; --accent-soft: rgba(143, 184, 222, .13); --accent-text: #a9c9e8;
+  --ok: #7cc79a; --ok-soft: rgba(124, 199, 154, .12); --bad: #f08f84; --bad-soft: rgba(240, 143, 132, .12);
+  --warn: #e3b866; --warn-soft: rgba(227, 184, 102, .12);
+}
+
+/* ========== 共用 ========== */
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3, .bar-title { font-family: var(--head-font); }
+:root[data-style="c"] .mod-name { font-family: var(--head-font); }
+
+.app { max-width: 480px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+.view { flex: 1; display: flex; flex-direction: column; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.fine { margin: 0; font-size: 13px; line-height: 1.6; color: var(--muted); }
+.err { margin: 4px 0 0; color: var(--bad); font-size: 14px; font-weight: 700; line-height: 1.5; }
+.err:empty { display: none; }
+
+.btn {
+  min-height: 48px; padding: 10px 18px; border-radius: var(--radius-sm);
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  font-size: 16px; font-weight: 700; cursor: pointer;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn:disabled { opacity: .6; cursor: progress; }
+.link-btn {
+  flex: none; min-height: 44px; padding: 6px 10px; border: 0; border-radius: var(--radius-sm);
+  background: transparent; color: var(--accent-text); font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.icon-btn {
+  flex: none; width: 44px; height: 44px; display: grid; place-items: center;
+  border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); cursor: pointer;
+}
+.icon-btn svg { width: 22px; height: 22px; }
+
+input.field {
+  width: 100%; min-height: 48px; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--surface-2); color: var(--ink);
+  font-size: 17px; letter-spacing: .04em;
+}
+input.field:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+input.secret { -webkit-text-security: disc; }
+
+/* 登入 */
+.login { justify-content: center; gap: 18px; padding: 32px 16px 40px; }
+.brand { text-align: center; }
+.brand-mark {
+  width: 56px; height: 56px; margin: 0 auto 12px; display: grid; place-items: center;
+  border-radius: var(--radius); background: var(--accent-soft); color: var(--accent-text);
+}
+.brand-mark svg { width: 30px; height: 30px; }
+.brand h1 { margin: 0; font-size: 22px; line-height: 1.35; }
+.brand p { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+.form { display: flex; flex-direction: column; gap: 6px; padding: 18px 16px; }
+.form label { margin-top: 8px; font-size: 14px; font-weight: 700; }
+.form label:first-child { margin-top: 0; }
+.form .btn { width: 100%; margin-top: 12px; }
+.login > .fine { text-align: center; text-wrap: balance; }
+
+/* 載入中 */
+.center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 32px 16px; text-align: center; }
+.spinner { width: 28px; height: 28px; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
+.center .row { display: flex; gap: 10px; }
+
+/* 上方標題列 */
+.bar {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 8px 10px 16px; padding-top: max(10px, env(safe-area-inset-top));
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.bar.back { padding-left: 4px; }
+.bar-title { flex: 1; min-width: 0; font-size: 16px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.code-pill {
+  flex: none; font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line);
+  color: var(--muted); background: var(--surface-2); font-variant-numeric: tabular-nums; letter-spacing: .02em;
+}
+
+/* 首頁 */
+.home { display: flex; flex-direction: column; gap: 16px; padding: 16px 16px 32px; }
+.hello h2 { margin: 0; font-size: 22px; line-height: 1.3; }
+.hello p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.note-box { margin: 0; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--warn-soft); color: var(--warn); font-size: 13.5px; font-weight: 700; }
+.sec-row { display: flex; align-items: center; justify-content: space-between; margin: 0 -4px -10px 0; }
+.sec-title { font-size: 13px; font-weight: 700; letter-spacing: .04em; color: var(--muted); }
+.mods { display: flex; flex-direction: column; gap: 10px; }
+.mod {
+  width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px; text-align: left;
+  border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.mod.locked { border-style: dashed; box-shadow: none; }
+.ring { position: relative; flex: none; width: 52px; height: 52px; }
+.ring > svg { display: block; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: var(--ring-w); }
+.ring .track { stroke: var(--line); }
+.ring .val { stroke: var(--accent); stroke-linecap: round; stroke-dasharray: 138.23; }
+.ring .val.zero { opacity: 0; }
+.mod.done .ring .val { stroke: var(--ok); }
+.pct { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mod.done .pct { color: var(--ok); }
+.pct svg { width: 20px; height: 20px; }
+.lock-ic { flex: none; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+.lock-ic svg { width: 22px; height: 22px; }
+.mod-main { flex: 1; min-width: 0; display: block; }
+.mod-name { display: block; font-size: 15px; font-weight: 700; line-height: 1.4; }
+.mod-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 5px; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.badge { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.badge.done { color: var(--ok); background: var(--ok-soft); }
+.badge.doing { color: var(--warn); background: var(--warn-soft); }
+.badge.todo { color: var(--muted); background: var(--surface-2); }
+.badge.now { color: var(--accent-text); background: var(--accent-soft); }
+.chev { flex: none; display: grid; color: var(--muted); }
+.chev svg { width: 20px; height: 20px; }
+.version { text-align: center; }
+
+/* 主題頁 */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat { display: flex; flex-direction: column; align-items: center; padding: 14px 6px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
+.stat-n { font-size: 26px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.stat-l { font-size: 12.5px; color: var(--muted); }
+.list { padding: 14px 16px; }
+.list h3 { margin: 0 0 6px; font-size: 15px; }
+.list ol { margin: 0; padding-left: 1.4em; }
+.list li { padding: 2px 0; font-size: 14px; }
+
+/* 老師解鎖 */
+dialog {
+  width: min(440px, calc(100% - 32px)); max-height: calc(100% - 32px); padding: 0;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .25);
+}
+dialog::backdrop { background: rgba(0, 0, 0, .45); }
+dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-content; z-index: 20; }
+.unlock { display: flex; flex-direction: column; gap: 6px; padding: 18px 16px 16px; }
+.unlock h2 { margin: 0; font-size: 19px; }
+.unlock .topic-line { margin: 2px 0 0; font-size: 15px; }
+.check {
+  display: flex; align-items: center; gap: 10px; min-height: 48px; margin: 8px 0 4px; padding: 8px 12px;
+  border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-2);
+  font-weight: 700; cursor: pointer;
+}
+.check input { flex: none; width: 22px; height: 22px; margin: 0; accent-color: var(--accent); }
+.unlock label.code-label { margin-top: 6px; font-size: 14px; font-weight: 700; }
+.unlock .row { display: flex; gap: 10px; margin-top: 12px; }
+.unlock .row .btn { flex: 1; }
+
+.toast {
+  position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 30;
+  width: max-content; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 999px;
+  background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 700; text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+}
+</style>
+</head>
+<body>
+<main class="app">
+
+  <!-- 載入中（重新整理網頁後，用上次的登入繼續） -->
+  <section id="v-loading" class="view center" hidden>
+    <div id="l-spin" class="spinner" aria-hidden="true"></div>
+    <p id="l-msg" class="fine" role="status">連線中…</p>
+    <div id="l-actions" class="row" hidden>
+      <button id="b-retry" class="btn primary" type="button">再試一次</button>
+      <button id="b-relogin" class="btn" type="button">重新登入</button>
+    </div>
+  </section>
+
+  <!-- 登入 -->
+  <section id="v-login" class="view login" aria-labelledby="login-h">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>
+      </div>
+      <h1 id="login-h">呼吸治療臨床情境練習</h1>
+      <p>請輸入研究人員給你的帳號和密碼</p>
+    </div>
+    <form id="f-login" class="card form" novalidate>
+      <label for="in-account">帳號</label>
+      <input id="in-account" class="field" type="text" autocomplete="username" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="40">
+      <label for="in-password">密碼（4 位數字）</label>
+      <input id="in-password" class="field" type="password" inputmode="numeric" autocomplete="current-password" maxlength="4">
+      <p id="login-error" class="err" role="alert"></p>
+      <button id="b-login" class="btn primary" type="submit">登入</button>
+    </form>
+    <p class="fine">帳號和密碼印在研究人員給你的紙條上，忘記了請聯絡研究人員。</p>
+    <noscript><p class="err">請開啟瀏覽器的 JavaScript 才能使用。</p></noscript>
+  </section>
+
+  <!-- 學習首頁 -->
+  <section id="v-home" class="view" hidden>
+    <header class="bar">
+      <span class="bar-title">呼吸治療臨床情境練習</span>
+      <span id="h-account" class="code-pill"></span>
+      <button id="b-logout" class="link-btn" type="button">登出</button>
+    </header>
+    <div class="home">
+      <div class="hello">
+        <h2>學習首頁</h2>
+        <p id="h-hint"></p>
+      </div>
+      <p id="h-preview" class="note-box" hidden>試跑帳號：看得到還沒審查通過的題目。</p>
+      <div class="sec-row">
+        <span class="sec-title">主題模組</span>
+        <button id="b-refresh" class="link-btn" type="button">重新整理</button>
+      </div>
+      <div id="h-topics" class="mods"></div>
+      <p id="h-version" class="fine version"></p>
+    </div>
+  </section>
+
+  <!-- 主題 -->
+  <section id="v-topic" class="view" hidden>
+    <header class="bar back">
+      <button id="b-back" class="icon-btn" type="button" aria-label="回首頁">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+      <span id="t-title" class="bar-title"></span>
+    </header>
+    <div id="t-body" class="home"></div>
+  </section>
+
+</main>
+
+<!-- 老師解鎖（學生點鎖住的主題時出現） -->
+<dialog id="d-unlock" aria-labelledby="u-h">
+  <form id="f-unlock" class="unlock" novalidate>
+    <h2 id="u-h">老師解鎖</h2>
+    <p class="topic-line">主題：<strong id="u-topic"></strong></p>
+    <p class="fine">這一頁請老師操作。確認學生已完成這個主題的前測後，勾選下方並輸入您的 6 位數解鎖碼。系統會記錄解鎖的老師和時間。</p>
+    <label class="check"><input id="u-confirm" type="checkbox"> 已完成本主題前測</label>
+    <label class="code-label" for="u-code">老師的解鎖碼（6 位數字）</label>
+    <input id="u-code" class="field secret" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="6" data-lpignore="true" data-1p-ignore="true">
+    <p id="u-error" class="err" role="alert"></p>
+    <div class="row">
+      <button id="b-unlock-cancel" class="btn" type="button">取消</button>
+      <button id="b-unlock" class="btn primary" type="submit">解鎖</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ====== 設定 ======
+  // 後端網址：Apps Script「部署」後拿到、結尾是 /exec 的網址。
+  // 之後用「管理部署作業 → 新版本」更新後端，網址不會變；只有另外「新增部署作業」才要改這裡。
+  const API_URL = 'https://script.google.com/macros/s/AKfycbx7SnfFcaez6j0CZV4Tajycmt9UwUHG5AEPSayv2n9Du53Dktqj7FE-u8nwuxcYWATZ/exec';
+  const TIMEOUT_MS = 30000; // 等後端回應的時間上限
+  // =================
+
+  const SESSION_KEY = 'rt-research-session';
+  const CONTROL_GROUP = '對照組';
+  // 這些後端訊息代表要重新登入
+  const AUTH_ERROR = /^(請輸入帳號和密碼|帳號或密碼不正確|密碼輸錯太多次|帳號設定有誤|這個帳號已停用|你的梯次)/;
+  const RING = 138.23; // 進度圈的周長（半徑 22）
+
+  const $ = id => document.getElementById(id);
+  let session = null;      // { account, password }：只存在這個分頁，關掉分頁就清除
+  let unlockTopic = '';
+  let toastTimer = 0;
+
+  // ---------- 小工具 ----------
+  const store = {
+    get() {
+      try {
+        const v = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+        return v && typeof v.account === 'string' && typeof v.password === 'string' ? v : null;
+      } catch (e) { return null; }
+    },
+    set(v) { try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(v)); } catch (e) { /* 無痕模式等情況存不了，就只留在記憶體 */ } },
+    clear() { try { sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* 同上 */ } }
+  };
+
+  // 全形英數字轉半形，去掉前後空白
+  const half = s => String(s || '').replace(/[！-～]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/　/g, ' ').trim();
+
+  // 建立元素；文字一律用 textContent 放進去，不解讀成 HTML
+  function h(tag, props) {
+    const n = document.createElement(tag);
+    Object.keys(props || {}).forEach(k => {
+      const v = props[k];
+      if (v === null || v === undefined || v === false) return;
+      if (k === 'class') n.className = v;
+      else if (k === 'text') n.textContent = v;
+      else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v);
+    });
+    for (let i = 2; i < arguments.length; i++) {
+      [].concat(arguments[i]).forEach(c => {
+        if (c === null || c === undefined || c === false) return;
+        n.append(c instanceof Node ? c : String(c));
+      });
+    }
+    return n;
+  }
+
+  // 固定的圖示（不含任何外部資料）
+  const ICONS = {
+    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>'
+  };
+  function icon(name) {
+    const t = document.createElement('template');
+    t.innerHTML = ICONS[name];
+    return t.content.firstChild;
+  }
+
+  function ring(pct, done) {
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('width', '52');
+    svg.setAttribute('height', '52');
+    svg.setAttribute('viewBox', '0 0 52 52');
+    const track = document.createElementNS(NS, 'circle');
+    const val = document.createElementNS(NS, 'circle');
+    [track, val].forEach(c => { c.setAttribute('cx', '26'); c.setAttribute('cy', '26'); c.setAttribute('r', '22'); });
+    track.setAttribute('class', 'track');
+    val.setAttribute('class', pct > 0 ? 'val' : 'val zero');
+    val.style.strokeDashoffset = (RING * (1 - Math.min(Math.max(pct, 0), 1))).toFixed(2);
+    svg.append(track, val);
+    return h('span', { class: 'ring', 'aria-hidden': 'true' }, svg,
+      h('span', { class: 'pct' }, done ? icon('check') : Math.round(pct * 100) + '%'));
+  }
+
+  function show(id) {
+    ['v-loading', 'v-login', 'v-home', 'v-topic'].forEach(v => { $(v).hidden = v !== id; });
+    window.scrollTo(0, 0);
+  }
+
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.hidden = true; }, 3500);
+  }
+
+  // 等後端回應時，按鈕不能再按，並顯示「連線中…」
+  async function busy(btn, fn) {
+    if (btn.disabled) return undefined;
+    const label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '連線中…';
+    try {
+      return await fn();
+    } finally {
+      btn.disabled = false;
+      btn.textContent = label;
+    }
+  }
+
+  // ---------- 呼叫後端 ----------
+  // 用 text/plain 送 JSON（不會觸發跨網域的預檢），每次都帶帳號和密碼。
+  async function api(action, extra, cred) {
+    const c = cred || session;
+    if (!c) return { ok: false, auth: true, error: '請重新登入' };
+    const body = JSON.stringify(Object.assign({ action: action, account: c.account, password: c.password }, extra || {}));
+    const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), TIMEOUT_MS) : 0;
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: body,
+        cache: 'no-store',
+        credentials: 'omit',
+        redirect: 'follow',
+        referrerPolicy: 'no-referrer',
+        signal: ctrl ? ctrl.signal : undefined
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (!data || typeof data.ok !== 'boolean') throw new Error('回應格式不對');
+      if (!data.ok) {
+        data.error = String(data.error || '系統忙碌，請稍後再試');
+        data.auth = AUTH_ERROR.test(data.error);
+      }
+      return data;
+    } catch (e) {
+      return {
+        ok: false, network: true,
+        error: navigator.onLine === false ? '手機沒有連上網路，請確認網路後再試一次' : '連線失敗，請稍後再試一次'
+      };
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  // ---------- 登入與登出 ----------
+  async function onLogin(e) {
+    e.preventDefault();
+    const err = $('login-error');
+    const account = half($('in-account').value);
+    const password = half($('in-password').value);
+    err.textContent = '';
+    if (!account || !password) { err.textContent = '請輸入帳號和密碼'; return; }
+    if (!/^\d{4}$/.test(password)) { err.textContent = '密碼是 4 位數字'; return; }
+    await busy($('b-login'), async () => {
+      const res = await api('login', null, { account: account, password: password });
+      if (!res.ok) {
+        err.textContent = res.error;
+        return;
+      }
+      session = { account: String(res.account || account), password: password };
+      store.set(session);
+      $('in-password').value = '';
+      renderHome(res);
+    });
+  }
+
+  function logout(msg) {
+    store.clear();
+    session = null;
+    closeUnlock();
+    $('in-password').value = '';
+    $('login-error').textContent = msg || '';
+    show('v-login');
+  }
+
+  // 重新整理網頁後，用這個分頁裡的登入繼續
+  async function resume() {
+    show('v-loading');
+    $('l-spin').hidden = false;
+    $('l-actions').hidden = true;
+    $('l-msg').textContent = '連線中…';
+    const res = await api('status');
+    if (res.ok) { renderHome(res); return; }
+    if (res.auth) { logout(res.error); return; }
+    $('l-spin').hidden = true;
+    $('l-msg').textContent = res.error;
+    $('l-actions').hidden = false;
+  }
+
+  async function refresh(btn) {
+    const run = async () => {
+      const res = await api('status');
+      if (res.ok) renderHome(res);
+      else if (res.auth) logout(res.error);
+      else toast(res.error);
+    };
+    return btn ? busy(btn, run) : run();
+  }
+
+  // ---------- 學習首頁 ----------
+  function renderHome(st) {
+    const control = st.group === CONTROL_GROUP;
+    $('h-account').textContent = String(st.account || (session && session.account) || '');
+    $('h-hint').textContent = control ? '四個主題都已開放，可以自由練習。' : '前測完成後，由老師輸入解鎖碼開放主題。';
+    $('h-preview').hidden = !st.preview;
+    $('h-version').textContent = st.version ? '題庫版本 ' + st.version : '';
+    const topics = Array.isArray(st.topics) ? st.topics : [];
+    const orders = topics.filter(t => t && t.open && t.order).map(t => Number(t.order) || 0);
+    const latest = orders.length ? Math.max.apply(null, orders) : 0;
+    const list = $('h-topics');
+    list.replaceChildren();
+    topics.forEach(t => { if (t && t.name) list.append(t.open ? openCard(t, latest) : lockedCard(t)); });
+    if (!list.children.length) list.append(h('p', { class: 'fine', text: '目前沒有主題。' }));
+    show('v-home');
+  }
+
+  function lockedCard(t) {
+    return h('button', { type: 'button', class: 'mod locked', 'data-topic': String(t.name), onclick: () => openUnlock(String(t.name)) },
+      h('span', { class: 'lock-ic', 'aria-hidden': 'true' }, icon('lock')),
+      h('span', { class: 'mod-main' },
+        h('span', { class: 'mod-name', text: String(t.name) }),
+        h('span', { class: 'mod-meta' },
+          h('span', { class: 'badge todo', text: '未開放' }),
+          h('span', { text: '請老師輸入解鎖' }))));
+  }
+
+  function openCard(t, latest) {
+    const total = Number(t.total) || 0;
+    const rounds = Number(t.rounds) || 0;
+    let pct = 0, done = false, badge, meta;
+    if (t.last && t.last.finished === false) {
+      const n = Array.isArray(t.last.answered) ? t.last.answered.length : 0;
+      pct = total ? n / total : 0;
+      badge = h('span', { class: 'badge doing', text: '練習中' });
+      meta = '第 ' + (Number(t.last.round) || 1) + ' 回：' + n + '／' + total + ' 題';
+    } else if (rounds > 0) {
+      done = true;
+      pct = 1;
+      badge = h('span', { class: 'badge done', text: '已練習 ' + rounds + ' 回' });
+      meta = t.best === null || t.best === undefined ? '' : '最高 ' + t.best + ' 分';
+    } else {
+      badge = h('span', { class: 'badge todo', text: '已開放' });
+      meta = total ? '共 ' + total + ' 題' : '題目準備中';
+    }
+    const now = latest && Number(t.order) === latest ? h('span', { class: 'badge now', text: '本次主題' }) : null;
+    return h('button', { type: 'button', class: 'mod' + (done ? ' done' : ''), 'data-topic': String(t.name), onclick: () => openTopic(String(t.name)) },
+      ring(pct, done),
+      h('span', { class: 'mod-main' },
+        h('span', { class: 'mod-name', text: String(t.name) }),
+        h('span', { class: 'mod-meta' }, now, badge, meta ? h('span', { text: meta }) : null)),
+      h('span', { class: 'chev', 'aria-hidden': 'true' }, icon('chev')));
+  }
+
+  // ---------- 老師解鎖 ----------
+  function openUnlock(name) {
+    const d = $('d-unlock');
+    unlockTopic = name;
+    $('u-topic').textContent = name;
+    $('u-confirm').checked = false;
+    $('u-code').value = '';
+    $('u-error').textContent = '';
+    if (typeof d.showModal === 'function') d.showModal();
+    else { d.classList.add('fallback'); d.setAttribute('open', ''); }
+    $('u-confirm').focus();
+  }
+
+  function closeUnlock() {
+    const d = $('d-unlock');
+    $('u-code').value = '';
+    if (!d.open) return;
+    if (typeof d.close === 'function') d.close();
+    else d.removeAttribute('open');
+  }
+
+  async function onUnlock(e) {
+    e.preventDefault();
+    const err = $('u-error');
+    const code = half($('u-code').value);
+    err.textContent = '';
+    if (!$('u-confirm').checked) { err.textContent = '請先勾選「已完成本主題前測」'; return; }
+    if (!/^\d{6}$/.test(code)) { err.textContent = '請輸入 6 位數解鎖碼'; $('u-code').focus(); return; }
+    await busy($('b-unlock'), async () => {
+      const topic = unlockTopic;
+      const res = await api('unlock', { topic: topic, code: code, confirmed: $('u-confirm').checked === true });
+      $('u-code').value = '';
+      if (!res.ok) {
+        if (res.auth) { logout(res.error); return; }
+        err.textContent = res.error;
+        $('u-code').focus();
+        return;
+      }
+      closeUnlock();
+      toast(res.already ? '「' + topic + '」已經開放了' : '已開放「' + topic + '」');
+      await refresh();
+    });
+  }
+
+  // ---------- 主題頁 ----------
+  async function openTopic(name) {
+    const body = $('t-body');
+    $('t-title').textContent = name;
+    body.replaceChildren(h('p', { class: 'fine', role: 'status', text: '下載教材和題目中…' }));
+    show('v-topic');
+    const res = await api('topic', { topic: name });
+    if ($('t-title').textContent !== name || $('v-topic').hidden) return; // 已經離開這一頁
+    if (!res.ok) {
+      if (res.auth) { logout(res.error); return; }
+      body.replaceChildren(
+        h('p', { class: 'err', role: 'alert', text: res.error }),
+        h('button', { type: 'button', class: 'btn', text: '再試一次', onclick: () => openTopic(name) }));
+      return;
+    }
+    const mats = Array.isArray(res.materials) ? res.materials : [];
+    const qs = Array.isArray(res.questions) ? res.questions : [];
+    const scs = res.scenarios && typeof res.scenarios === 'object' ? Object.keys(res.scenarios).length : 0;
+    const stat = (n, label) => h('div', { class: 'stat' }, h('span', { class: 'stat-n', text: String(n) }), h('span', { class: 'stat-l', text: label }));
+    body.replaceChildren.apply(body, [
+      res.preview ? h('p', { class: 'note-box', text: '試跑帳號：這裡包含還沒審查通過的題目。' }) : null,
+      h('div', { class: 'stats' }, stat(mats.length, '教材段落'), stat(scs, '臨床情境'), stat(qs.length, '練習題')),
+      mats.length ? h('div', { class: 'card list' },
+        h('h3', { text: '教材段落' }),
+        h('ol', null, mats.map(m => h('li', { text: String((m && m.title) || '（沒有標題）') })))) : null,
+      h('p', { class: 'fine', text: '練習功能準備中。' + (res.version ? '題庫版本 ' + res.version + '。' : '') })
+    ].filter(Boolean));
+  }
+
+  // ---------- 開始 ----------
+  function init() {
+    // 解鎖碼欄位：瀏覽器支援的話用文字欄加遮蔽，避免瀏覽器把老師的解鎖碼當成學生的密碼存起來
+    if (!(window.CSS && CSS.supports && CSS.supports('-webkit-text-security', 'disc'))) $('u-code').type = 'password';
+    $('f-login').addEventListener('submit', onLogin);
+    $('f-unlock').addEventListener('submit', onUnlock);
+    $('b-unlock-cancel').addEventListener('click', closeUnlock);
+    $('d-unlock').addEventListener('close', () => { $('u-code').value = ''; });
+    $('b-logout').addEventListener('click', () => logout(''));
+    $('b-refresh').addEventListener('click', e => refresh(e.currentTarget));
+    $('b-back').addEventListener('click', () => { show('v-home'); refresh(); });
+    $('b-retry').addEventListener('click', resume);
+    $('b-relogin').addEventListener('click', () => logout(''));
+    const saved = store.get();
+    if (saved) {
+      session = saved;
+      $('in-account').value = saved.account;
+      resume();
+    } else {
+      show('v-login');
+    }
+    document.documentElement.setAttribute('data-ready', '1');
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
