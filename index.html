@@ -1,101 +1,30 @@
 <!doctype html>
-<html lang="zh-TW" data-style="a">
+<html lang="zh-TW">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="only light">
 <link rel="icon" href="data:,">
 <title>呼吸治療臨床情境練習</title>
 <!--
   研究版學習網頁（前端）
   - 這個檔案會公開在網路上，裡面只放畫面程式和後端網址，不放題目、答案、密碼或解鎖碼。
   - 教材和題目在學生登入、主題開放後，才由後端（Google Apps Script）傳過來。
-  - 外觀：上面 <html> 的 data-style 是風格，"a" 臨床監視器、"b" 清爽學習、"c" 沉穩專業。
+  - 外觀是風格 A（臨床監視器），只用淺色：手機設成深色模式也一樣。
   - 後端網址在下方程式最前面的 API_URL。
 -->
 <style>
+/* ========== 風格 A：臨床監視器（只用淺色） ========== */
 :root {
-  color-scheme: light dark;
+  color-scheme: only light;
   --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Heiti TC", system-ui, sans-serif;
-  --serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
-}
-:root[data-theme="light"] { color-scheme: light; }
-:root[data-theme="dark"] { color-scheme: dark; }
-
-/* ========== 風格 A：臨床監視器 ========== */
-:root[data-style="a"] {
   --bg: #edf1f5; --surface: #ffffff; --surface-2: #f3f6f9; --ink: #0f172a; --muted: #4a5a70; --line: #d8e0e9;
   --accent: #0e7490; --accent-ink: #ffffff; --accent-soft: #e0f2f6; --accent-text: #0e7490;
   --ok: #146c35; --ok-soft: #e8f6ee; --bad: #b42318; --bad-soft: #fdeeec; --warn: #a15c07; --warn-soft: #fdf3e2;
   --radius: 14px; --radius-sm: 10px; --shadow: 0 1px 2px rgba(15, 23, 42, .06); --ring-w: 4px;
-  --head-font: var(--sans);
-}
-@media (prefers-color-scheme: dark) {
-  :root[data-style="a"]:not([data-theme="light"]) {
-    --bg: #0a101c; --surface: #111a2b; --surface-2: #172338; --ink: #e6edf7; --muted: #9db0c8; --line: #24344e;
-    --accent: #22d3ee; --accent-ink: #052530; --accent-soft: rgba(34, 211, 238, .14); --accent-text: #67e8f9;
-    --ok: #4ade80; --ok-soft: rgba(74, 222, 128, .13); --bad: #f87171; --bad-soft: rgba(248, 113, 113, .13);
-    --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, .13);
-    --shadow: none;
-  }
-}
-:root[data-style="a"][data-theme="dark"] {
-  --bg: #0a101c; --surface: #111a2b; --surface-2: #172338; --ink: #e6edf7; --muted: #9db0c8; --line: #24344e;
-  --accent: #22d3ee; --accent-ink: #052530; --accent-soft: rgba(34, 211, 238, .14); --accent-text: #67e8f9;
-  --ok: #4ade80; --ok-soft: rgba(74, 222, 128, .13); --bad: #f87171; --bad-soft: rgba(248, 113, 113, .13);
-  --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, .13);
-  --shadow: none;
-}
-
-/* ========== 風格 B：清爽學習 ========== */
-:root[data-style="b"] {
-  --bg: #f2f7f1; --surface: #ffffff; --surface-2: #edf5ec; --ink: #16211a; --muted: #506055; --line: #dce8db;
-  --accent: #15803d; --accent-ink: #ffffff; --accent-soft: #e3f3e6; --accent-text: #146c35;
-  --ok: #146c35; --ok-soft: #e6f4ea; --bad: #b42318; --bad-soft: #fdeeec; --warn: #a15c07; --warn-soft: #fdf3e2;
-  --radius: 22px; --radius-sm: 16px; --ring-w: 6px;
-  --shadow: 0 1px 2px rgba(22, 33, 26, .05), 0 6px 16px rgba(22, 33, 26, .06);
-  --head-font: var(--sans);
-}
-@media (prefers-color-scheme: dark) {
-  :root[data-style="b"]:not([data-theme="light"]) {
-    --bg: #0d140f; --surface: #141d16; --surface-2: #1a261c; --ink: #e6f1e7; --muted: #a2b5a4; --line: #263528;
-    --accent: #4ade80; --accent-ink: #052e14; --accent-soft: rgba(74, 222, 128, .13); --accent-text: #6ee79b;
-    --ok: #4ade80; --ok-soft: rgba(74, 222, 128, .13); --bad: #f87171; --bad-soft: rgba(248, 113, 113, .13);
-    --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, .13);
-    --shadow: none;
-  }
-}
-:root[data-style="b"][data-theme="dark"] {
-  --bg: #0d140f; --surface: #141d16; --surface-2: #1a261c; --ink: #e6f1e7; --muted: #a2b5a4; --line: #263528;
-  --accent: #4ade80; --accent-ink: #052e14; --accent-soft: rgba(74, 222, 128, .13); --accent-text: #6ee79b;
-  --ok: #4ade80; --ok-soft: rgba(74, 222, 128, .13); --bad: #f87171; --bad-soft: rgba(248, 113, 113, .13);
-  --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, .13);
-  --shadow: none;
-}
-
-/* ========== 風格 C：沉穩專業 ========== */
-:root[data-style="c"] {
-  --bg: #f5f2ec; --surface: #fffdf8; --surface-2: #f1ede5; --ink: #1d1b18; --muted: #5e584f; --line: #e0d9ce;
-  --accent: #1e4f7a; --accent-ink: #ffffff; --accent-soft: #e6edf4; --accent-text: #1e4f7a;
-  --ok: #1f6b3a; --ok-soft: #e7f2ea; --bad: #a3261b; --bad-soft: #f8e9e6; --warn: #8a5a12; --warn-soft: #f6eedd;
-  --radius: 8px; --radius-sm: 6px; --shadow: none; --ring-w: 3px;
-  --head-font: var(--serif);
-}
-@media (prefers-color-scheme: dark) {
-  :root[data-style="c"]:not([data-theme="light"]) {
-    --bg: #141311; --surface: #1c1b18; --surface-2: #24221e; --ink: #ece7df; --muted: #aaa295; --line: #36322b;
-    --accent: #8fb8de; --accent-ink: #0d1f30; --accent-soft: rgba(143, 184, 222, .13); --accent-text: #a9c9e8;
-    --ok: #7cc79a; --ok-soft: rgba(124, 199, 154, .12); --bad: #f08f84; --bad-soft: rgba(240, 143, 132, .12);
-    --warn: #e3b866; --warn-soft: rgba(227, 184, 102, .12);
-  }
-}
-:root[data-style="c"][data-theme="dark"] {
-  --bg: #141311; --surface: #1c1b18; --surface-2: #24221e; --ink: #ece7df; --muted: #aaa295; --line: #36322b;
-  --accent: #8fb8de; --accent-ink: #0d1f30; --accent-soft: rgba(143, 184, 222, .13); --accent-text: #a9c9e8;
-  --ok: #7cc79a; --ok-soft: rgba(124, 199, 154, .12); --bad: #f08f84; --bad-soft: rgba(240, 143, 132, .12);
-  --warn: #e3b866; --warn-soft: rgba(227, 184, 102, .12);
 }
 
 /* ========== 共用 ========== */
@@ -113,8 +42,6 @@ body {
 }
 button, input { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-h1, h2, h3, .bar-title { font-family: var(--head-font); }
-:root[data-style="c"] .mod-name { font-family: var(--head-font); }
 
 .app { max-width: 480px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
 .view { flex: 1; display: flex; flex-direction: column; }
@@ -129,7 +56,8 @@ h1, h2, h3, .bar-title { font-family: var(--head-font); }
   font-size: 16px; font-weight: 700; cursor: pointer;
 }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.btn:disabled { opacity: .6; cursor: progress; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn[aria-busy="true"] { cursor: progress; }
 .link-btn {
   flex: none; min-height: 44px; padding: 6px 10px; border: 0; border-radius: var(--radius-sm);
   background: transparent; color: var(--accent-text); font-size: 14px; font-weight: 700; cursor: pointer;
@@ -191,8 +119,19 @@ input.secret { -webkit-text-security: disc; }
 .hello h2 { margin: 0; font-size: 22px; line-height: 1.3; }
 .hello p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
 .note-box { margin: 0; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--warn-soft); color: var(--warn); font-size: 13.5px; font-weight: 700; }
+.resume {
+  width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px; text-align: left;
+  border: 0; border-radius: var(--radius); background: var(--accent); color: var(--accent-ink); cursor: pointer;
+}
+.resume-main { flex: 1; min-width: 0; }
+.resume-l, .resume-t, .resume-s { display: block; }
+.resume-l { font-size: 12.5px; }
+.resume-t { font-size: 16px; font-weight: 700; line-height: 1.45; }
+.resume-s { font-size: 13px; font-variant-numeric: tabular-nums; }
+.resume-go { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 999px; background: rgba(255, 255, 255, .18); }
+.resume-go svg { width: 20px; height: 20px; }
 .sec-row { display: flex; align-items: center; justify-content: space-between; margin: 0 -4px -10px 0; }
-.sec-title { font-size: 13px; font-weight: 700; letter-spacing: .04em; color: var(--muted); }
+.sec-title { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .04em; color: var(--muted); }
 .mods { display: flex; flex-direction: column; gap: 10px; }
 .mod {
   width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px; text-align: left;
@@ -225,14 +164,78 @@ input.secret { -webkit-text-security: disc; }
 .version { text-align: center; }
 
 /* 主題頁 */
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.stat { display: flex; flex-direction: column; align-items: center; padding: 14px 6px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
-.stat-n { font-size: 26px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
-.stat-l { font-size: 12.5px; color: var(--muted); }
-.list { padding: 14px 16px; }
-.list h3 { margin: 0 0 6px; font-size: 15px; }
-.list ol { margin: 0; padding-left: 1.4em; }
-.list li { padding: 2px 0; font-size: 14px; }
+.topic-card { display: flex; flex-direction: column; gap: 4px; padding: 16px; }
+.topic-card h3 { margin: 0; font-size: 16px; }
+.topic-card .meta { margin: 0; font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.topic-card .btn { width: 100%; margin-top: 10px; }
+
+/* 教材與複習建議 */
+.mat { padding: 14px 16px 16px; }
+.mat h3 { margin: 0 0 6px; font-size: 16px; line-height: 1.45; }
+.mat p { margin: 0 0 8px; }
+.mat p:last-child { margin-bottom: 0; }
+.src { margin: 8px 0 0; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 12.5px; line-height: 1.55; color: var(--muted); overflow-wrap: anywhere; }
+
+/* 練習 */
+.qhead { position: sticky; top: 0; z-index: 2; background: var(--surface); padding-top: env(safe-area-inset-top); }
+.qbar { display: flex; align-items: center; gap: 6px; padding: 6px 12px 6px 4px; }
+.qbar-mid { flex: 1; min-width: 0; text-align: center; line-height: 1.35; }
+.qbar-t { font-size: 15px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qbar-c { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.progress { height: 4px; background: var(--line); }
+.progress i { display: block; width: 0; height: 100%; background: var(--accent); }
+.quiz { display: flex; flex-direction: column; gap: 14px; padding: 16px 16px 32px; }
+.quiz .btn { width: 100%; }
+.case { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; }
+.case-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.case-l { flex: none; font-size: 12px; font-weight: 700; letter-spacing: .04em; color: var(--muted); }
+.case-dx { min-width: 0; font-size: 14px; font-weight: 700; text-align: right; }
+.case-brief { margin: 0; font-size: 14.5px; }
+.case-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin: 0; padding-top: 8px; border-top: 1px solid var(--line); }
+.case-grid > div { min-width: 0; }
+.case-grid .wide { grid-column: 1 / -1; }
+.case-grid dt { font-size: 12px; color: var(--muted); }
+.case-grid dd { margin: 0; font-size: 14.5px; font-weight: 700; line-height: 1.45; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.stem { margin: 0; font-size: 16px; line-height: 1.75; }
+.stem:focus { outline: none; }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt {
+  width: 100%; display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; text-align: left;
+  font-size: 15px; line-height: 1.6; color: var(--ink); background: var(--surface);
+  border: 1.5px solid var(--line); border-radius: var(--radius-sm); cursor: pointer;
+}
+.opt:disabled { cursor: default; }
+@media (hover: hover) { .opt:hover:not(:disabled):not(.is-sel) { border-color: var(--muted); } }
+.opt-key { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 999px; font-size: 13px; font-weight: 700; background: var(--surface-2); color: var(--muted); }
+.opt-text { flex: 1; min-width: 0; padding-top: 1px; overflow-wrap: anywhere; }
+.opt-mark { flex: none; display: inline-flex; align-items: center; gap: 3px; padding-top: 3px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.opt-mark:empty { display: none; }
+.opt-mark svg { width: 15px; height: 15px; }
+.opt.is-sel { border-color: var(--accent); background: var(--accent-soft); }
+.opt.is-sel .opt-key { background: var(--accent); color: var(--surface); }
+.opt.is-ok { border-color: var(--ok); background: var(--ok-soft); }
+.opt.is-ok .opt-key { background: var(--ok); color: var(--surface); }
+.opt.is-ok .opt-mark { color: var(--ok); }
+.opt.is-bad { border-color: var(--bad); background: var(--bad-soft); }
+.opt.is-bad .opt-key { background: var(--bad); color: var(--surface); }
+.opt.is-bad .opt-mark { color: var(--bad); }
+.fb { overflow: hidden; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
+.fb-head { display: flex; align-items: center; gap: 8px; padding: 11px 14px; font-weight: 700; }
+.fb-head svg { flex: none; width: 20px; height: 20px; }
+.fb.ok .fb-head { background: var(--ok-soft); color: var(--ok); }
+.fb.bad .fb-head { background: var(--bad-soft); color: var(--bad); }
+.fb-s { margin-left: auto; font-size: 13px; color: var(--ink); }
+.fb-body { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px 14px; }
+.fb-body h4 { margin: 0; font-size: 13px; letter-spacing: .04em; color: var(--muted); }
+.fb-body p { margin: 0; }
+.fb-body .src { margin: 0; }
+
+/* 一回練習的結果 */
+.score { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 22px 16px 20px; text-align: center; }
+.score-n { font-size: 48px; font-weight: 700; line-height: 1.1; color: var(--accent-text); font-variant-numeric: tabular-nums; }
+.score-n small { margin-left: 4px; font-size: 18px; }
+.score-l { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+#r-body > .btn { width: 100%; }
 
 /* 老師解鎖 */
 dialog {
@@ -310,6 +313,16 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
         <p id="h-hint"></p>
       </div>
       <p id="h-preview" class="note-box" hidden>試跑帳號：看得到還沒審查通過的題目。</p>
+      <button id="h-resume" class="resume" type="button" hidden>
+        <span class="resume-main">
+          <span class="resume-l">繼續上次的練習</span>
+          <span id="h-resume-t" class="resume-t"></span>
+          <span id="h-resume-s" class="resume-s"></span>
+        </span>
+        <span class="resume-go" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        </span>
+      </button>
       <div class="sec-row">
         <span class="sec-title">主題模組</span>
         <button id="b-refresh" class="link-btn" type="button">重新整理</button>
@@ -328,6 +341,55 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
       <span id="t-title" class="bar-title"></span>
     </header>
     <div id="t-body" class="home"></div>
+  </section>
+
+  <!-- 重點教材 -->
+  <section id="v-mat" class="view" hidden>
+    <header class="bar back">
+      <button id="b-mat-back" class="icon-btn" type="button" aria-label="回主題">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+      <span id="m-title" class="bar-title"></span>
+    </header>
+    <div id="m-body" class="home"></div>
+  </section>
+
+  <!-- 練習（一題一題作答） -->
+  <section id="v-quiz" class="view" hidden>
+    <header class="qhead">
+      <div class="qbar">
+        <button id="b-quiz-back" class="icon-btn" type="button" aria-label="離開練習，回主題">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <div class="qbar-mid">
+          <div id="q-topic" class="qbar-t"></div>
+          <div id="q-count" class="qbar-c"></div>
+        </div>
+        <span id="q-round" class="code-pill"></span>
+      </div>
+      <div class="progress" aria-hidden="true"><i id="q-progress"></i></div>
+    </header>
+    <div class="quiz">
+      <section id="q-case" class="card case" aria-label="病人資料" hidden></section>
+      <p id="q-stem" class="stem" tabindex="-1"></p>
+      <p id="q-id" class="fine" hidden></p>
+      <div id="q-opts" class="opts" role="group" aria-label="選項"></div>
+      <div id="q-fb" class="fb" aria-live="polite" hidden></div>
+      <p id="q-error" class="err" role="alert"></p>
+      <button id="b-confirm" class="btn primary" type="button" disabled>確認答案</button>
+      <button id="b-next" class="btn primary" type="button" hidden>下一題</button>
+    </div>
+  </section>
+
+  <!-- 一回練習的結果 -->
+  <section id="v-result" class="view" hidden>
+    <header class="bar back">
+      <button id="b-result-back" class="icon-btn" type="button" aria-label="回主題">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+      <span id="r-title" class="bar-title"></span>
+    </header>
+    <div id="r-body" class="home"></div>
   </section>
 
 </main>
@@ -367,11 +429,26 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
   // 這些後端訊息代表要重新登入
   const AUTH_ERROR = /^(請輸入帳號和密碼|帳號或密碼不正確|密碼輸錯太多次|帳號設定有誤|這個帳號已停用|你的梯次)/;
   const RING = 138.23; // 進度圈的周長（半徑 22）
+  const KEYS = ['A', 'B', 'C', 'D'];
+  const VIEWS = ['v-loading', 'v-login', 'v-home', 'v-topic', 'v-mat', 'v-quiz', 'v-result'];
+  // 情境資料裡另外排版的欄位
+  const CASE_BRIEF = '病人簡述';
+  const CASE_DX = '診斷或手術';
 
   const $ = id => document.getElementById(id);
   let session = null;      // { account, password }：只存在這個分頁，關掉分頁就清除
+  let status = null;       // 最近一次讀到的各主題狀態（login、status 的回應）
+  let topicData = {};      // 下載過的主題內容（登出時清掉）
+  let current = '';        // 目前所在的主題
+  let quiz = null;         // 練習中的狀態
+  let reading = null;      // 看教材的計時
+  let starting = false;    // 正在開始一回練習（避免連按）
+  let startIds = {};       // 開始練習沒有回應時，重送用同一個編號
+  let pending = [];        // 還沒送成功的看教材紀錄
+  let navDepth = 0;        // 在瀏覽器「上一頁」裡加了幾層：0 首頁、1 主題頁、2 教材／練習／結果
   let unlockTopic = '';
   let toastTimer = 0;
+  const watches = new Set();
 
   // ---------- 小工具 ----------
   const store = {
@@ -387,6 +464,7 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
 
   // 全形英數字轉半形，去掉前後空白
   const half = s => String(s || '').replace(/[！-～]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/　/g, ' ').trim();
+  const str = v => (v === null || v === undefined ? '' : String(v));
 
   // 建立元素；文字一律用 textContent 放進去，不解讀成 HTML
   function h(tag, props) {
@@ -408,16 +486,36 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     return n;
   }
 
+  // 把一串元素（可以有陣列和空值）換成 el 的內容
+  function fill(el, list) {
+    const out = [];
+    (function add(x) {
+      if (Array.isArray(x)) x.forEach(add);
+      else if (x !== null && x !== undefined && x !== false) out.push(x);
+    })(list);
+    el.replaceChildren.apply(el, out);
+  }
+
+  // 文字依換行分成段落
+  function paras(text, empty) {
+    const parts = str(text).split(/\n+/).map(s => s.trim()).filter(Boolean);
+    if (!parts.length) return empty ? h('p', { class: 'fine', text: empty }) : null;
+    return parts.map(s => h('p', { text: s }));
+  }
+
   // 固定的圖示（不含任何外部資料）
   const ICONS = {
     lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
     chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>'
   };
   function icon(name) {
     const t = document.createElement('template');
     t.innerHTML = ICONS[name];
-    return t.content.firstChild;
+    const el = t.content.firstChild;
+    el.setAttribute('aria-hidden', 'true');
+    return el;
   }
 
   function ring(pct, done) {
@@ -437,8 +535,29 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
       h('span', { class: 'pct' }, done ? icon('check') : Math.round(pct * 100) + '%'));
   }
 
+  // 每筆紀錄的編號：網路不穩重送時，後端看到同一個編號只記一次
+  function uid() {
+    const a = new Uint32Array(4);
+    try { crypto.getRandomValues(a); } catch (e) { for (let i = 0; i < 4; i++) a[i] = Math.floor(Math.random() * 4294967296); }
+    return Array.from(a, x => x.toString(36)).join('');
+  }
+
+  // 計時：只算網頁在前景的時間（切到別的 App、關掉螢幕時暫停）
+  function stopwatch() {
+    let total = 0;
+    let since = document.hidden ? null : performance.now();
+    const w = {
+      pause() { if (since !== null) { total += performance.now() - since; since = null; } },
+      resume() { if (since === null) since = performance.now(); },
+      seconds() { return Math.round((total + (since === null ? 0 : performance.now() - since)) / 1000); },
+      stop() { w.pause(); watches.delete(w); return w.seconds(); }
+    };
+    watches.add(w);
+    return w;
+  }
+
   function show(id) {
-    ['v-loading', 'v-login', 'v-home', 'v-topic'].forEach(v => { $(v).hidden = v !== id; });
+    VIEWS.forEach(v => { $(v).hidden = v !== id; });
     window.scrollTo(0, 0);
   }
 
@@ -455,19 +574,23 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     if (btn.disabled) return undefined;
     const label = btn.textContent;
     btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
     btn.textContent = '連線中…';
     try {
       return await fn();
     } finally {
       btn.disabled = false;
+      btn.removeAttribute('aria-busy');
       btn.textContent = label;
     }
   }
 
   // ---------- 呼叫後端 ----------
   // 用 text/plain 送 JSON（不會觸發跨網域的預檢），每次都帶帳號和密碼。
-  async function api(action, extra, cred) {
-    const c = cred || session;
+  // opt.cred：用別的登入（登入時、送出舊的紀錄時）；opt.keepalive：關掉網頁時也要送完
+  async function api(action, extra, opt) {
+    opt = opt || {};
+    const c = opt.cred || session;
     if (!c) return { ok: false, auth: true, error: '請重新登入' };
     const body = JSON.stringify(Object.assign({ action: action, account: c.account, password: c.password }, extra || {}));
     const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
@@ -481,6 +604,7 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
         credentials: 'omit',
         redirect: 'follow',
         referrerPolicy: 'no-referrer',
+        keepalive: opt.keepalive === true,
         signal: ctrl ? ctrl.signal : undefined
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -501,6 +625,65 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     }
   }
 
+  // ---------- 換畫面與返回 ----------
+  // 往深一層的畫面走時，在瀏覽器的「上一頁」加一層，手機的返回鍵才會回到上一個畫面，不會直接離開網頁
+  function navTo(depth) {
+    while (navDepth < depth) {
+      try { history.pushState({ rt: navDepth + 1 }, ''); } catch (e) { return; }
+      navDepth++;
+    }
+  }
+
+  function resetNav() {
+    navDepth = 0;
+    try { history.replaceState({ rt: 0 }, ''); } catch (e) { /* 不支援就只用畫面上的返回 */ }
+  }
+
+  // 畫面上的返回按鈕：和手機的返回鍵一樣
+  function back() {
+    if (navDepth > 0) { history.back(); return; }
+    onNavigate($('v-topic').hidden ? 1 : 0);
+  }
+
+  function onPop(e) {
+    const d = e.state && typeof e.state.rt === 'number' ? e.state.rt : 0;
+    const from = navDepth;
+    navDepth = d;
+    if (d > from) { history.go(from - d); return; } // 「下一頁」或重新整理前留下的紀錄：退回原本那一層
+    onNavigate(d);
+  }
+
+  function onNavigate(d) {
+    closeUnlock();
+    leaveSub(false);
+    if (!session) return; // 已經登出：留在登入畫面
+    if (d >= 1 && current) {
+      showTopic(current);
+    } else {
+      current = '';
+      show('v-home');
+      refresh();
+    }
+  }
+
+  // 離開教材或練習畫面：送出看教材的秒數、停止計時
+  function leaveSub(quiet) {
+    stopReading(false);
+    if (!quiz) return;
+    const qz = quiz;
+    dropQuiz();
+    const done = qz.before + qz.answered;
+    if (!quiet && done > 0 && done < qz.total) toast('進度已儲存，下次從第 ' + (done + 1) + ' 題繼續');
+  }
+
+  function dropQuiz() {
+    if (!quiz) return;
+    quiz.closed = true;
+    quiz.roundWatch.stop();
+    if (quiz.qWatch) quiz.qWatch.stop();
+    quiz = null;
+  }
+
   // ---------- 登入與登出 ----------
   async function onLogin(e) {
     e.preventDefault();
@@ -511,7 +694,7 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     if (!account || !password) { err.textContent = '請輸入帳號和密碼'; return; }
     if (!/^\d{4}$/.test(password)) { err.textContent = '密碼是 4 位數字'; return; }
     await busy($('b-login'), async () => {
-      const res = await api('login', null, { account: account, password: password });
+      const res = await api('login', null, { cred: { account: account, password: password } });
       if (!res.ok) {
         err.textContent = res.error;
         return;
@@ -524,9 +707,16 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
   }
 
   function logout(msg) {
+    leaveSub(true);
+    pending = [];
     store.clear();
     session = null;
+    status = null;
+    topicData = {};
+    startIds = {};
+    current = '';
     closeUnlock();
+    resetNav();
     $('in-password').value = '';
     $('login-error').textContent = msg || '';
     show('v-login');
@@ -547,9 +737,11 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
   }
 
   async function refresh(btn) {
+    flush();
     const run = async () => {
       const res = await api('status');
-      if (res.ok) renderHome(res);
+      if (!session) return;
+      if (res.ok) { if (!$('v-home').hidden) renderHome(res); else status = res; }
       else if (res.auth) logout(res.error);
       else toast(res.error);
     };
@@ -557,7 +749,13 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
   }
 
   // ---------- 學習首頁 ----------
+  function topicStatus(name) {
+    const list = status && Array.isArray(status.topics) ? status.topics : [];
+    return list.find(t => t && t.name === name) || null;
+  }
+
   function renderHome(st) {
+    status = st;
     const control = st.group === CONTROL_GROUP;
     $('h-account').textContent = String(st.account || (session && session.account) || '');
     $('h-hint').textContent = control ? '四個主題都已開放，可以自由練習。' : '前測完成後，由老師輸入解鎖碼開放主題。';
@@ -570,6 +768,15 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     list.replaceChildren();
     topics.forEach(t => { if (t && t.name) list.append(t.open ? openCard(t, latest) : lockedCard(t)); });
     if (!list.children.length) list.append(h('p', { class: 'fine', text: '目前沒有主題。' }));
+    // 還沒完成的那一回
+    const doing = topics.find(t => t && t.name && t.open && t.last && t.last.finished === false && Number(t.total) > 0);
+    $('h-resume').hidden = !doing;
+    if (doing) {
+      const n = Array.isArray(doing.last.answered) ? doing.last.answered.length : 0;
+      $('h-resume-t').textContent = String(doing.name);
+      $('h-resume-s').textContent = '第 ' + (Number(doing.last.round) || 1) + ' 回：已答 ' + n + '／' + Number(doing.total) + ' 題';
+      $('h-resume').onclick = () => openTopic(String(doing.name), true);
+    }
     show('v-home');
   }
 
@@ -655,32 +862,384 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
   }
 
   // ---------- 主題頁 ----------
-  async function openTopic(name) {
-    const body = $('t-body');
+  function questionsOf(name) {
+    const d = topicData[name];
+    return d && Array.isArray(d.questions) ? d.questions.filter(q => q && q.id) : [];
+  }
+
+  // 這一回還沒答的題目（照題庫的順序）
+  function remaining(name, last) {
+    const done = new Set(Array.isArray(last && last.answered) ? last.answered.map(String) : []);
+    return questionsOf(name).filter(q => !done.has(String(q.id)));
+  }
+
+  // 從首頁點進主題：每次都重新下載，拿到最新的題庫內容
+  async function openTopic(name, thenResume) {
+    current = name;
+    navTo(1);
     $('t-title').textContent = name;
-    body.replaceChildren(h('p', { class: 'fine', role: 'status', text: '下載教材和題目中…' }));
+    fill($('t-body'), h('p', { class: 'fine', role: 'status', text: '下載教材和題目中…' }));
     show('v-topic');
     const res = await api('topic', { topic: name });
-    if ($('t-title').textContent !== name || $('v-topic').hidden) return; // 已經離開這一頁
+    if (current !== name || $('v-topic').hidden) return; // 已經離開這一頁
     if (!res.ok) {
       if (res.auth) { logout(res.error); return; }
-      body.replaceChildren(
+      fill($('t-body'), [
         h('p', { class: 'err', role: 'alert', text: res.error }),
-        h('button', { type: 'button', class: 'btn', text: '再試一次', onclick: () => openTopic(name) }));
+        h('button', { type: 'button', class: 'btn', text: '再試一次', onclick: () => openTopic(name, thenResume) })]);
       return;
     }
-    const mats = Array.isArray(res.materials) ? res.materials : [];
-    const qs = Array.isArray(res.questions) ? res.questions : [];
-    const scs = res.scenarios && typeof res.scenarios === 'object' ? Object.keys(res.scenarios).length : 0;
-    const stat = (n, label) => h('div', { class: 'stat' }, h('span', { class: 'stat-n', text: String(n) }), h('span', { class: 'stat-l', text: label }));
-    body.replaceChildren.apply(body, [
-      res.preview ? h('p', { class: 'note-box', text: '試跑帳號：這裡包含還沒審查通過的題目。' }) : null,
-      h('div', { class: 'stats' }, stat(mats.length, '教材段落'), stat(scs, '臨床情境'), stat(qs.length, '練習題')),
-      mats.length ? h('div', { class: 'card list' },
-        h('h3', { text: '教材段落' }),
-        h('ol', null, mats.map(m => h('li', { text: String((m && m.title) || '（沒有標題）') })))) : null,
-      h('p', { class: 'fine', text: '練習功能準備中。' + (res.version ? '題庫版本 ' + res.version + '。' : '') })
-    ].filter(Boolean));
+    topicData[name] = res;
+    renderTopic(name);
+    if (thenResume && $('b-start')) startPractice(name, $('b-start'));
+  }
+
+  // 從教材、練習或結果回到主題頁：用已下載的內容，再更新進度
+  function showTopic(name) {
+    if (!topicData[name]) { openTopic(name); return; }
+    $('t-title').textContent = name;
+    renderTopic(name);
+    show('v-topic');
+    refreshTopic(name);
+  }
+
+  async function refreshTopic(name) {
+    const res = await api('status');
+    if (!session) return;
+    if (!res.ok) { if (res.auth) logout(res.error); return; }
+    if (quiz) return; // 已經開始作答：不要用比較舊的進度蓋掉
+    status = res;
+    if (current === name && !$('v-topic').hidden && !starting && topicData[name]) renderTopic(name);
+  }
+
+  function renderTopic(name) {
+    const data = topicData[name];
+    const qs = questionsOf(name);
+    const mats = Array.isArray(data.materials) ? data.materials : [];
+    const t = topicStatus(name) || {};
+    const last = t.last || null;
+    const rounds = Number(t.rounds) || 0;
+    let meta, label = '';
+    if (!qs.length) {
+      meta = '題目準備中';
+    } else if (last && last.finished === false) {
+      const n = qs.length - remaining(name, last).length;
+      meta = '共 ' + qs.length + ' 題｜第 ' + last.round + ' 回練習中，已答 ' + n + ' 題';
+      label = n < qs.length ? '繼續第 ' + last.round + ' 回（第 ' + (n + 1) + ' 題）' : '看第 ' + last.round + ' 回的結果';
+    } else {
+      const next = (last ? Number(last.round) || 0 : 0) + 1;
+      meta = '共 ' + qs.length + ' 題' + (rounds ? '｜已練習 ' + rounds + ' 回' +
+        (t.best === null || t.best === undefined ? '' : '，最高 ' + t.best + ' 分') : '');
+      label = next > 1 ? '開始第 ' + next + ' 回練習' : '開始練習';
+    }
+    fill($('t-body'), [
+      data.preview ? h('p', { class: 'note-box', text: '試跑帳號：這裡包含還沒審查通過的題目。' }) : null,
+      h('section', { class: 'card topic-card', 'aria-labelledby': 't-q-h' },
+        h('h3', { id: 't-q-h', text: '練習題' }),
+        h('p', { class: 'meta', text: meta }),
+        label ? h('button', { type: 'button', id: 'b-start', class: 'btn primary', text: label, onclick: e => startPractice(name, e.currentTarget) }) : null),
+      h('section', { class: 'card topic-card', 'aria-labelledby': 't-m-h' },
+        h('h3', { id: 't-m-h', text: '重點教材' }),
+        h('p', { class: 'meta', text: mats.length ? '共 ' + mats.length + ' 段' : '教材準備中' }),
+        mats.length ? h('button', { type: 'button', id: 'b-read', class: 'btn', text: '閱讀教材', onclick: () => openMaterials(name) }) : null),
+      data.version ? h('p', { class: 'fine version', text: '題庫版本 ' + data.version }) : null
+    ]);
+  }
+
+  // ---------- 重點教材 ----------
+  function openMaterials(name) {
+    const data = topicData[name];
+    if (!data) return;
+    const mats = Array.isArray(data.materials) ? data.materials : [];
+    navTo(2);
+    $('m-title').textContent = '重點教材｜' + name;
+    fill($('m-body'), mats.map((m, i) => h('article', { class: 'card mat' },
+      h('h3', { text: str(m && m.title) || '第 ' + (i + 1) + ' 段' }),
+      paras(m && m.content),
+      m && m.source ? h('p', { class: 'src', text: '出處：' + m.source }) : null)));
+    show('v-mat');
+    stopReading(false);
+    reading = { topic: name, watch: stopwatch() };
+  }
+
+  function stopReading(urgent) {
+    if (!reading) return;
+    const r = reading;
+    reading = null;
+    logReading(r.topic, r.watch.stop(), urgent);
+  }
+
+  // 看教材的秒數：送不成功的留著，之後再送（同一個編號後端只記一次）
+  function logReading(topic, seconds, urgent) {
+    if (!session || !(seconds >= 1)) return;
+    const ev = { body: { type: '看教材', topic: topic, seconds: seconds, id: uid() }, cred: session, busy: false };
+    pending.push(ev);
+    sendEvent(ev, urgent);
+  }
+
+  async function sendEvent(ev, urgent) {
+    if (ev.busy) return;
+    ev.busy = true;
+    const res = await api('event', ev.body, { cred: ev.cred, keepalive: urgent === true });
+    ev.busy = false;
+    // 成功、或後端不收（例如主題被關閉）就不再送；網路不通的留著
+    if (res.ok || !res.network) pending = pending.filter(x => x !== ev);
+  }
+
+  function flush() { pending.slice().forEach(ev => sendEvent(ev)); }
+
+  // 可能就此關掉網頁：先把這段看教材的時間送出，回來後再重新計時
+  function saveReading() {
+    if (!reading) return;
+    const r = reading;
+    reading = { topic: r.topic, watch: stopwatch() };
+    logReading(r.topic, r.watch.stop(), true);
+  }
+
+  function onVisibility() {
+    if (document.hidden) {
+      saveReading();
+      watches.forEach(w => w.pause());
+    } else {
+      watches.forEach(w => w.resume());
+      flush();
+    }
+  }
+
+  // ---------- 練習 ----------
+  function setLast(name, last) {
+    const t = topicStatus(name);
+    if (t) t.last = last;
+  }
+
+  function markAnswered(name, round, qid) {
+    const t = topicStatus(name);
+    if (!t) return;
+    if (!t.last || Number(t.last.round) !== round || t.last.finished !== false) t.last = { round: round, finished: false, answered: [] };
+    if (!Array.isArray(t.last.answered)) t.last.answered = [];
+    if (t.last.answered.indexOf(qid) < 0) t.last.answered.push(qid);
+  }
+
+  async function startPractice(name, btn) {
+    if (starting || !topicData[name]) return;
+    const qs = questionsOf(name);
+    if (!qs.length) return;
+    const t = topicStatus(name);
+    const last = t && t.last;
+    const run = async () => {
+      if (last && last.finished === false) { // 接著做還沒完成的那一回
+        const rest = remaining(name, last);
+        if (rest.length) { beginQuiz(name, Number(last.round), rest, qs.length - rest.length); return; }
+        const res = await finishRound(name, Number(last.round), 0); // 題目都答完了，只差看結果
+        if (!res.ok) { if (!res.auth) toast(res.error); return; }
+        if (current === name && !$('v-topic').hidden) { navTo(2); renderResult(name, res); }
+        return;
+      }
+      const id = startIds[name] || (startIds[name] = uid());
+      const res = await api('start', { topic: name, id: id });
+      if (!res.ok) { if (res.auth) logout(res.error); else toast(res.error); return; }
+      delete startIds[name];
+      if (current !== name || ($('v-topic').hidden && $('v-result').hidden)) return; // 已經離開
+      setLast(name, { round: Number(res.round), finished: false, answered: [] });
+      beginQuiz(name, Number(res.round), qs, 0);
+    };
+    starting = true;
+    try {
+      await (btn ? busy(btn, run) : run());
+    } finally {
+      starting = false;
+    }
+  }
+
+  function beginQuiz(name, round, list, before) {
+    stopReading(false);
+    dropQuiz();
+    navTo(2);
+    quiz = {
+      topic: name, round: round, list: list, idx: 0, before: before, total: before + list.length, answered: 0,
+      roundWatch: stopwatch(), qWatch: null, picked: '', answerId: '', seconds: 0, phase: 'ask', closed: false
+    };
+    $('q-topic').textContent = name;
+    $('q-round').textContent = '第 ' + round + ' 回';
+    show('v-quiz');
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const qz = quiz, q = qz.list[qz.idx];
+    const pos = qz.before + qz.idx + 1;
+    const data = topicData[qz.topic] || {};
+    $('q-count').textContent = '第 ' + pos + ' 題／共 ' + qz.total + ' 題';
+    $('q-progress').style.width = ((pos - 1) / qz.total * 100).toFixed(1) + '%';
+    renderCase(data.scenarios, q.scenario);
+    $('q-stem').textContent = str(q.stem);
+    $('q-id').hidden = !data.preview;
+    $('q-id').textContent = data.preview ? '試跑帳號才看得到：題目 ID ' + q.id : '';
+    fill($('q-opts'), KEYS.map(k => h('button', { type: 'button', class: 'opt', 'data-key': k, 'aria-pressed': 'false', onclick: () => pick(k) },
+      h('span', { class: 'opt-key', text: k }),
+      h('span', { class: 'opt-text', text: str(q.options && q.options[k]) }),
+      h('span', { class: 'opt-mark' }))));
+    $('q-fb').hidden = true;
+    $('q-fb').replaceChildren();
+    $('q-error').textContent = '';
+    $('b-confirm').textContent = '確認答案';
+    $('b-confirm').hidden = false;
+    $('b-confirm').disabled = true;
+    $('b-next').hidden = true;
+    qz.picked = '';
+    qz.answerId = '';
+    qz.phase = 'ask';
+    if (qz.qWatch) qz.qWatch.stop();
+    qz.qWatch = stopwatch();
+    window.scrollTo(0, 0);
+    try { $('q-stem').focus({ preventScroll: true }); } catch (e) { /* 舊瀏覽器 */ }
+  }
+
+  // 病人資料：情境資料表的欄位和值（沒填的欄位後端不會送）
+  function renderCase(scenarios, id) {
+    const box = $('q-case');
+    const pairs = id && scenarios && Array.isArray(scenarios[id]) ? scenarios[id].filter(p => Array.isArray(p) && p.length >= 2 && str(p[1]).trim() !== '') : [];
+    if (!pairs.length) { box.hidden = true; box.replaceChildren(); return; }
+    const get = name => { const p = pairs.find(x => str(x[0]) === name); return p ? str(p[1]) : ''; };
+    const rest = pairs.filter(p => str(p[0]) !== CASE_BRIEF && str(p[0]) !== CASE_DX);
+    fill(box, [
+      h('div', { class: 'case-head' },
+        h('span', { class: 'case-l', text: '病人資料' }),
+        get(CASE_DX) ? h('span', { class: 'case-dx', text: get(CASE_DX) }) : null),
+      get(CASE_BRIEF) ? h('p', { class: 'case-brief', text: get(CASE_BRIEF) }) : null,
+      rest.length ? h('dl', { class: 'case-grid' }, rest.map(p => h('div', { class: str(p[1]).length > 12 ? 'wide' : null },
+        h('dt', { text: str(p[0]) }),
+        h('dd', { text: str(p[1]) })))) : null
+    ]);
+    box.hidden = false;
+  }
+
+  function optButtons() { return Array.from($('q-opts').querySelectorAll('.opt')); }
+
+  function pick(k) {
+    if (!quiz || quiz.phase !== 'ask') return;
+    quiz.picked = k;
+    optButtons().forEach(b => {
+      const on = b.getAttribute('data-key') === k;
+      b.classList.toggle('is-sel', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    $('b-confirm').disabled = false;
+  }
+
+  // 確認答案：後端記好以後才顯示對錯和解析。送出失敗時答案不能再改，只能用同一個答案重送
+  async function onConfirm() {
+    const qz = quiz;
+    if (!qz || !qz.picked || (qz.phase !== 'ask' && qz.phase !== 'retry')) return;
+    const q = qz.list[qz.idx];
+    if (!qz.answerId) {
+      qz.answerId = uid();
+      qz.seconds = qz.qWatch.stop();
+    }
+    qz.phase = 'saving';
+    optButtons().forEach(b => { b.disabled = true; });
+    $('q-error').textContent = '';
+    await busy($('b-confirm'), async () => {
+      const res = await api('answer', { topic: qz.topic, round: qz.round, qid: q.id, choice: qz.picked, seconds: qz.seconds, id: qz.answerId });
+      if (qz.closed || quiz !== qz) return;
+      if (!res.ok) {
+        if (res.auth) { logout(res.error); return; }
+        qz.phase = 'retry';
+        $('q-error').textContent = res.error;
+        return;
+      }
+      qz.phase = 'shown';
+      qz.answered++;
+      markAnswered(qz.topic, qz.round, String(q.id));
+      showFeedback(q, qz.picked, res.correct === true);
+    });
+    if (quiz === qz && qz.phase === 'retry') $('b-confirm').textContent = '再送一次';
+  }
+
+  function showFeedback(q, picked, correct) {
+    const qz = quiz;
+    const ans = str(q.answer);
+    optButtons().forEach(b => {
+      const k = b.getAttribute('data-key');
+      const mark = b.querySelector('.opt-mark');
+      b.classList.remove('is-sel');
+      b.disabled = true;
+      if (k === ans) { b.classList.add('is-ok'); mark.replaceChildren(icon('check'), k === picked ? '你的答案' : '正確答案'); }
+      else if (k === picked) { b.classList.add('is-bad'); mark.replaceChildren(icon('cross'), '你的答案'); }
+    });
+    const fb = $('q-fb');
+    const others = paras(q.distractors);
+    fb.className = 'fb ' + (correct ? 'ok' : 'bad');
+    fill(fb, [
+      h('div', { class: 'fb-head' },
+        icon(correct ? 'check' : 'cross'),
+        h('span', { text: correct ? '答對了' : '答錯了' }),
+        correct ? null : h('span', { class: 'fb-s', text: '正確答案是 ' + ans })),
+      h('div', { class: 'fb-body' },
+        h('h4', { text: '解析' }),
+        paras(q.explanation, '這一題還沒有解析。'),
+        others ? h('h4', { text: '其他選項' }) : null,
+        others,
+        q.source ? h('p', { class: 'src', text: '出處：' + q.source }) : null)
+    ]);
+    fb.hidden = false;
+    $('b-confirm').hidden = true;
+    $('b-next').textContent = qz.idx < qz.list.length - 1 ? '下一題' : '看本回結果';
+    $('b-next').hidden = false;
+    $('q-progress').style.width = ((qz.before + qz.idx + 1) / qz.total * 100).toFixed(1) + '%';
+    const top = fb.getBoundingClientRect().top;
+    if (top > window.innerHeight * 0.65) window.scrollBy(0, top - window.innerHeight * 0.3);
+    try { $('b-next').focus({ preventScroll: true }); } catch (e) { /* 舊瀏覽器 */ }
+  }
+
+  async function onNext() {
+    const qz = quiz;
+    if (!qz || qz.phase !== 'shown') return;
+    if (qz.idx < qz.list.length - 1) { qz.idx++; renderQuestion(); return; }
+    $('q-error').textContent = '';
+    await busy($('b-next'), async () => {
+      const res = await finishRound(qz.topic, qz.round, qz.roundWatch.seconds());
+      if (qz.closed || quiz !== qz) return;
+      if (!res.ok) { if (!res.auth) $('q-error').textContent = res.error; return; }
+      dropQuiz();
+      renderResult(qz.topic, res);
+    });
+  }
+
+  async function finishRound(name, round, seconds) {
+    const res = await api('finish', { topic: name, round: round, seconds: seconds });
+    if (!res.ok) { if (res.auth) logout(res.error); return res; }
+    const t = topicStatus(name);
+    if (t && !(t.last && Number(t.last.round) === round && t.last.finished === true)) {
+      const total = Number(res.total) || 0;
+      const score = total ? Math.round((Number(res.correct) || 0) / total * 100) : null;
+      t.rounds = (Number(t.rounds) || 0) + 1;
+      if (score !== null) t.best = Math.max(t.best === null || t.best === undefined ? 0 : Number(t.best), score);
+      t.last = { round: round, finished: true };
+    }
+    return res;
+  }
+
+  // ---------- 一回練習的結果 ----------
+  function renderResult(name, res) {
+    const total = Number(res.total) || 0, right = Number(res.correct) || 0;
+    const score = total ? Math.round(right / total * 100) : 0;
+    const advice = Array.isArray(res.advice) ? res.advice.filter(a => a && (a.title || a.content)) : [];
+    $('r-title').textContent = name;
+    fill($('r-body'), [
+      h('section', { class: 'card score', 'aria-label': '本回成績' },
+        h('span', { class: 'score-l', text: '第 ' + (Number(res.round) || '') + ' 回練習完成' }),
+        h('span', { class: 'score-n' }, String(score), h('small', { text: '分' })),
+        h('span', { class: 'score-l', text: '答對 ' + right + '／' + total + ' 題' })),
+      advice.length ? h('h3', { class: 'sec-title', text: '建議複習' }) : null,
+      advice.map(a => h('article', { class: 'card mat' },
+        a.title ? h('h3', { text: str(a.title) }) : null,
+        paras(a.content),
+        a.source ? h('p', { class: 'src', text: '出處：' + a.source }) : null)),
+      h('button', { type: 'button', id: 'b-again', class: 'btn primary', text: '再練一回', onclick: e => startPractice(name, e.currentTarget) }),
+      h('button', { type: 'button', id: 'b-done', class: 'btn', text: '回主題', onclick: back })
+    ]);
+    show('v-result');
   }
 
   // ---------- 開始 ----------
@@ -693,9 +1252,16 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     $('d-unlock').addEventListener('close', () => { $('u-code').value = ''; });
     $('b-logout').addEventListener('click', () => logout(''));
     $('b-refresh').addEventListener('click', e => refresh(e.currentTarget));
-    $('b-back').addEventListener('click', () => { show('v-home'); refresh(); });
+    ['b-back', 'b-mat-back', 'b-quiz-back', 'b-result-back'].forEach(id => $(id).addEventListener('click', back));
+    $('b-confirm').addEventListener('click', onConfirm);
+    $('b-next').addEventListener('click', onNext);
     $('b-retry').addEventListener('click', resume);
     $('b-relogin').addEventListener('click', () => logout(''));
+    window.addEventListener('popstate', onPop);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', () => { saveReading(); watches.forEach(w => w.pause()); });
+    window.addEventListener('pageshow', e => { if (e.persisted && !document.hidden) watches.forEach(w => w.resume()); });
+    resetNav();
     const saved = store.get();
     if (saved) {
       session = saved;
