@@ -49,6 +49,7 @@ button, input { font: inherit; color: inherit; }
 .fine { margin: 0; font-size: 13px; line-height: 1.6; color: var(--muted); }
 .err { margin: 4px 0 0; color: var(--bad); font-size: 14px; font-weight: 700; line-height: 1.5; }
 .err:empty { display: none; }
+.save-note { margin: 4px 0 0; color: var(--warn); font-size: 13px; font-weight: 700; line-height: 1.5; }
 
 .btn {
   min-height: 48px; padding: 10px 18px; border-radius: var(--radius-sm);
@@ -376,6 +377,7 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
       <div id="q-opts" class="opts" role="group" aria-label="選項"></div>
       <div id="q-fb" class="fb" aria-live="polite" hidden></div>
       <p id="q-error" class="err" role="alert"></p>
+      <p id="q-save" class="save-note" role="status" hidden></p>
       <button id="b-confirm" class="btn primary" type="button" disabled>確認答案</button>
       <button id="b-next" class="btn primary" type="button" hidden>下一題</button>
     </div>
@@ -425,6 +427,8 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
   // =================
 
   const SESSION_KEY = 'rt-research-session';
+  const ANSWER_KEY = 'rt-research-answers'; // 還沒存到後端的答案（不含密碼）
+  const BUSY_ERROR = /^系統忙碌/;            // 後端忙碌：和網路不通一樣，等一下再送
   const CONTROL_GROUP = '對照組';
   // 這些後端訊息代表要重新登入
   const AUTH_ERROR = /^(請輸入帳號和密碼|帳號或密碼不正確|密碼輸錯太多次|帳號設定有誤|這個帳號已停用|你的梯次)/;
@@ -445,6 +449,11 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
   let starting = false;    // 正在開始一回練習（避免連按）
   let startIds = {};       // 開始練習沒有回應時，重送用同一個編號
   let pending = [];        // 還沒送成功的看教材紀錄
+  let saves = [];          // 還沒存到後端的答案，照作答順序（也放在這個分頁，重新整理後接著送）
+  let pumping = null;      // 正在一筆一筆送答案
+  let pumpMore = false;
+  let saveTimer = 0;       // 送不成功時，過一下再送
+  let saveDelay = 0;
   let navDepth = 0;        // 在瀏覽器「上一頁」裡加了幾層：0 首頁、1 主題頁、2 教材／練習／結果
   let unlockTopic = '';
   let toastTimer = 0;
@@ -673,7 +682,8 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     const qz = quiz;
     dropQuiz();
     const done = qz.before + qz.answered;
-    if (!quiet && done > 0 && done < qz.total) toast('進度已儲存，下次從第 ' + (done + 1) + ' 題繼續');
+    if (quiet || !(done > 0 && done < qz.total)) return;
+    toast(saveTimer && saves.length ? '有答案還沒存到，連上網路後會自動補送' : '進度已儲存，下次從第 ' + (done + 1) + ' 題繼續');
   }
 
   function dropQuiz() {
@@ -708,7 +718,16 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
 
   function logout(msg) {
     leaveSub(true);
+    if (!msg) { // 自己按登出：還沒送到的答案和看教材紀錄先送出（密碼錯誤等被登出時就送不了）
+      sendAnswersNow();
+      pending.forEach(ev => sendEvent(ev, true));
+    }
     pending = [];
+    saves = [];
+    answerStore.save();
+    clearTimeout(saveTimer);
+    saveTimer = 0;
+    saveDelay = 0;
     store.clear();
     session = null;
     status = null;
@@ -729,7 +748,7 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     $('l-actions').hidden = true;
     $('l-msg').textContent = '連線中…';
     const res = await api('status');
-    if (res.ok) { renderHome(res); return; }
+    if (res.ok) { renderHome(res); pumpAnswers(); return; }
     if (res.auth) { logout(res.error); return; }
     $('l-spin').hidden = true;
     $('l-msg').textContent = res.error;
@@ -741,7 +760,7 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     const run = async () => {
       const res = await api('status');
       if (!session) return;
-      if (res.ok) { if (!$('v-home').hidden) renderHome(res); else status = res; }
+      if (res.ok) { if (!$('v-home').hidden) renderHome(res); else { status = res; mergeSaves(); } }
       else if (res.auth) logout(res.error);
       else toast(res.error);
     };
@@ -756,6 +775,7 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
 
   function renderHome(st) {
     status = st;
+    mergeSaves();
     const control = st.group === CONTROL_GROUP;
     $('h-account').textContent = String(st.account || (session && session.account) || '');
     $('h-hint').textContent = control ? '四個主題都已開放，可以自由練習。' : '前測完成後，由老師輸入解鎖碼開放主題。';
@@ -909,6 +929,7 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     if (!res.ok) { if (res.auth) logout(res.error); return; }
     if (quiz) return; // 已經開始作答：不要用比較舊的進度蓋掉
     status = res;
+    mergeSaves();
     if (current === name && !$('v-topic').hidden && !starting && topicData[name]) renderTopic(name);
   }
 
@@ -999,11 +1020,112 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
   function onVisibility() {
     if (document.hidden) {
       saveReading();
+      sendAnswersNow();
       watches.forEach(w => w.pause());
     } else {
       watches.forEach(w => w.resume());
       flush();
+      pumpAnswers();
     }
+  }
+
+  // ---------- 存答案：先顯示對錯和解析，答案在背景送到後端 ----------
+  const answerStore = {
+    load(account) {
+      try {
+        const v = JSON.parse(sessionStorage.getItem(ANSWER_KEY) || '[]');
+        return Array.isArray(v) ? v.filter(s => s && s.account === account && s.body && s.body.id)
+          .map(s => ({ account: s.account, body: s.body })) : [];
+      } catch (e) { return []; }
+    },
+    save() {
+      try {
+        if (saves.length) sessionStorage.setItem(ANSWER_KEY, JSON.stringify(saves.map(s => ({ account: s.account, body: s.body }))));
+        else sessionStorage.removeItem(ANSWER_KEY);
+      } catch (e) { /* 存不了就只留在記憶體 */ }
+    }
+  };
+
+  function queueAnswer(body) {
+    saves.push({ account: session.account, body: body });
+    answerStore.save();
+    pumpAnswers();
+  }
+
+  function dropSave(s) {
+    if (saves.indexOf(s) < 0) return;
+    saves = saves.filter(x => x !== s);
+    answerStore.save();
+    updateSaveNote();
+  }
+
+  // 照作答的順序一次送一筆；網路不通或後端忙碌就過一下再送（2、4、8…最多 30 秒）。
+  // 重送用同一個編號，後端只記一次
+  function pumpAnswers() {
+    if (pumping) { pumpMore = true; return pumping; } // 正在送：送完這一輪再看一次有沒有新的答案
+    pumping = runPump().finally(() => {
+      pumping = null;
+      if (pumpMore) { pumpMore = false; pumpAnswers(); }
+    });
+    return pumping;
+  }
+
+  async function runPump() {
+    clearTimeout(saveTimer);
+    saveTimer = 0;
+    let again = false;
+    while (session && saves.length) {
+      const s = saves[0];
+      if (s.account !== session.account) { dropSave(s); continue; } // 別的帳號留下的：不能用這個登入送
+      const res = await api('answer', s.body);
+      if (!session) return;
+      if (res.ok) { dropSave(s); saveDelay = 0; continue; }
+      if (res.auth) { logout(res.error); return; }
+      if (res.network || BUSY_ERROR.test(res.error)) { again = true; break; }
+      dropSave(s); // 後端不收（例如題目被停用）：不再重送
+      toast('有一題的答案沒有存到：' + res.error);
+    }
+    if (again) {
+      saveDelay = Math.min(saveDelay ? saveDelay * 2 : 2000, 30000);
+      saveTimer = setTimeout(pumpAnswers, saveDelay);
+    }
+    updateSaveNote();
+  }
+
+  // 可能就此關掉網頁或登出：還沒存到的答案馬上用 keepalive 送出
+  function sendAnswersNow() {
+    if (!session) return;
+    const cred = session;
+    saves.forEach(s => {
+      if (s.account === cred.account) api('answer', s.body, { cred: cred, keepalive: true }).then(res => { if (res.ok) dropSave(s); });
+    });
+  }
+
+  // 送不成功、正在等重送時，練習畫面上說明（平常不顯示）
+  function updateSaveNote() {
+    const n = saveTimer ? saves.length : 0;
+    $('q-save').hidden = !n;
+    $('q-save').textContent = n ? '網路不穩：有 ' + n + ' 題的答案還沒存到，連上網路後會自動補送' : '';
+  }
+
+  // 這一回的答案都存到了，才能算成績
+  async function answersSaved(topic, round) {
+    const left = () => saves.some(s => s.body.topic === topic && s.body.round === round);
+    for (let i = 0; i < 2 && session && left(); i++) {
+      if (!pumping) { clearTimeout(saveTimer); saveTimer = 0; saveDelay = 0; }
+      await pumpAnswers();
+    }
+    return !left();
+  }
+
+  // 後端的進度還沒算到正在送的答案：先算進去，接著做時才不會再出同一題
+  function mergeSaves() {
+    saves.forEach(s => {
+      const t = topicStatus(s.body.topic);
+      if (t && t.last && Number(t.last.round) === Number(s.body.round) && t.last.finished === false) {
+        markAnswered(s.body.topic, Number(s.body.round), String(s.body.qid));
+      }
+    });
   }
 
   // ---------- 練習 ----------
@@ -1057,7 +1179,7 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     navTo(2);
     quiz = {
       topic: name, round: round, list: list, idx: 0, before: before, total: before + list.length, answered: 0,
-      roundWatch: stopwatch(), qWatch: null, picked: '', answerId: '', seconds: 0, phase: 'ask', closed: false
+      roundWatch: stopwatch(), qWatch: null, picked: '', phase: 'ask', closed: false
     };
     $('q-topic').textContent = name;
     $('q-round').textContent = '第 ' + round + ' 回';
@@ -1087,8 +1209,8 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     $('b-confirm').disabled = true;
     $('b-next').hidden = true;
     qz.picked = '';
-    qz.answerId = '';
     qz.phase = 'ask';
+    updateSaveNote();
     if (qz.qWatch) qz.qWatch.stop();
     qz.qWatch = stopwatch();
     window.scrollTo(0, 0);
@@ -1127,33 +1249,16 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     $('b-confirm').disabled = false;
   }
 
-  // 確認答案：後端記好以後才顯示對錯和解析。送出失敗時答案不能再改，只能用同一個答案重送
-  async function onConfirm() {
+  // 確認答案：馬上顯示對錯和解析（下載的題目裡就有答案），答案在背景存到後端。確認後不能再改
+  function onConfirm() {
     const qz = quiz;
-    if (!qz || !qz.picked || (qz.phase !== 'ask' && qz.phase !== 'retry')) return;
+    if (!qz || !qz.picked || qz.phase !== 'ask') return;
     const q = qz.list[qz.idx];
-    if (!qz.answerId) {
-      qz.answerId = uid();
-      qz.seconds = qz.qWatch.stop();
-    }
-    qz.phase = 'saving';
-    optButtons().forEach(b => { b.disabled = true; });
-    $('q-error').textContent = '';
-    await busy($('b-confirm'), async () => {
-      const res = await api('answer', { topic: qz.topic, round: qz.round, qid: q.id, choice: qz.picked, seconds: qz.seconds, id: qz.answerId });
-      if (qz.closed || quiz !== qz) return;
-      if (!res.ok) {
-        if (res.auth) { logout(res.error); return; }
-        qz.phase = 'retry';
-        $('q-error').textContent = res.error;
-        return;
-      }
-      qz.phase = 'shown';
-      qz.answered++;
-      markAnswered(qz.topic, qz.round, String(q.id));
-      showFeedback(q, qz.picked, res.correct === true);
-    });
-    if (quiz === qz && qz.phase === 'retry') $('b-confirm').textContent = '再送一次';
+    qz.phase = 'shown';
+    qz.answered++;
+    markAnswered(qz.topic, qz.round, String(q.id));
+    queueAnswer({ topic: qz.topic, round: qz.round, qid: q.id, choice: qz.picked, seconds: qz.qWatch.stop(), id: uid() });
+    showFeedback(q, qz.picked, qz.picked === str(q.answer));
   }
 
   function showFeedback(q, picked, correct) {
@@ -1207,6 +1312,7 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
   }
 
   async function finishRound(name, round, seconds) {
+    if (!(await answersSaved(name, round))) return { ok: false, error: '還有答案還沒存到，請確認網路後再試一次' };
     const res = await api('finish', { topic: name, round: round, seconds: seconds });
     if (!res.ok) { if (res.auth) logout(res.error); return res; }
     const t = topicStatus(name);
@@ -1259,12 +1365,14 @@ dialog.fallback[open] { position: fixed; inset: 16px; margin: auto; height: fit-
     $('b-relogin').addEventListener('click', () => logout(''));
     window.addEventListener('popstate', onPop);
     document.addEventListener('visibilitychange', onVisibility);
-    window.addEventListener('pagehide', () => { saveReading(); watches.forEach(w => w.pause()); });
+    window.addEventListener('pagehide', () => { saveReading(); sendAnswersNow(); watches.forEach(w => w.pause()); });
     window.addEventListener('pageshow', e => { if (e.persisted && !document.hidden) watches.forEach(w => w.resume()); });
+    window.addEventListener('online', () => { flush(); pumpAnswers(); });
     resetNav();
     const saved = store.get();
     if (saved) {
       session = saved;
+      saves = answerStore.load(saved.account);
       $('in-account').value = saved.account;
       resume();
     } else {
