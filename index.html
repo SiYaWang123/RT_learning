@@ -144,6 +144,8 @@ input.secret { -webkit-text-security: disc; }
 
 /* 首頁 */
 .home { display: flex; flex-direction: column; gap: 16px; padding: 20px 16px 40px; }
+/* 結果頁最下面多留空間：iPhone Safari 點畫面最下方會先叫出工具列，按鈕要能捲到離底部遠一點 */
+#r-body { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
 .home > .sec-title { margin: 8px 0 -6px; }
 .hello h2 { margin: 0; font-size: var(--fs-page); line-height: 1.3; letter-spacing: .01em; }
 .hello p { margin: 4px 0 0; font-size: var(--fs-small); color: var(--muted); }
@@ -223,7 +225,8 @@ input.secret { -webkit-text-security: disc; }
 .qbar-c { font-size: var(--fs-micro); color: var(--muted); font-variant-numeric: tabular-nums; }
 .progress { height: 4px; background: var(--line); }
 .progress i { display: block; width: 0; height: 100%; border-radius: 0 999px 999px 0; background: var(--accent); }
-.quiz { display: flex; flex-direction: column; gap: 16px; padding: 16px 16px 40px; }
+/* 最下面多留空間，同上 */
+.quiz { display: flex; flex-direction: column; gap: 16px; padding: 16px 16px calc(120px + env(safe-area-inset-bottom)); }
 .quiz .btn { width: 100%; }
 .case { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px 16px; }
 .case-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
@@ -308,9 +311,10 @@ input.secret { -webkit-text-security: disc; }
 .stem:focus { outline: none; }
 /* 下載中的像素小動畫：肺吸氣、吐氣兩格輪流，下面一排方塊跑燈 */
 .pix-load { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 40px 0 24px; }
-.pix-lungs { display: block; width: 128px; height: 104px; shape-rendering: crispEdges; }
-.pix-lungs .f-in { animation: pix-in 1.6s linear infinite; }
-.pix-lungs .f-out { animation: pix-out 1.6s linear infinite; }
+.pix-art { display: block; shape-rendering: crispEdges; }
+.pix-art .f-in { animation: pix-in var(--pix-dur, 1.6s) linear infinite; }
+.pix-art .f-out { animation: pix-out var(--pix-dur, 1.6s) linear infinite; }
+.pix-lungs { width: 128px; height: 104px; }
 .pix-bar { display: flex; gap: 4px; }
 .pix-bar i { width: 10px; height: 10px; background: var(--line-strong); animation: pix-run 2s linear infinite; }
 .pix-load .fine { letter-spacing: .04em; }
@@ -363,8 +367,15 @@ input.secret { -webkit-text-security: disc; }
 .score { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 28px 16px 24px; text-align: center; }
 .score-n { margin: 2px 0 6px; font-size: 56px; font-weight: 700; line-height: 1.1; color: var(--accent-text); font-variant-numeric: tabular-nums; }
 .score-n small { margin-left: 4px; font-size: var(--fs-title); }
-.score-l:first-child { font-size: var(--fs-small); font-weight: var(--w-em); letter-spacing: .08em; }
-.score-l:last-child { padding: 3px 14px; border-radius: 999px; background: var(--surface-2); font-size: var(--fs-small); }
+.score-l.round { font-size: var(--fs-small); font-weight: var(--w-em); letter-spacing: .08em; }
+.score-l.count { padding: 3px 14px; border-radius: 999px; background: var(--surface-2); font-size: var(--fs-small); }
+/* 分數等級：像素小圖、等級徽章、一句誇獎或鼓勵 */
+.score .pix-art { width: 104px; height: 104px; margin-bottom: 4px; }
+.rank { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.rank b { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 6px; color: #fff; font-size: 20px; font-weight: 800; line-height: 1; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .2); }
+.rank span { font-size: var(--fs-title); font-weight: var(--w-head); color: var(--ink); }
+.rank.s b { background: #c98a12; } .rank.a b { background: #2f8f5b; } .rank.b b { background: #2f6fd0; } .rank.c b { background: #c0587a; }
+.score-msg { max-width: 26em; margin: 10px 0 0; font-size: var(--fs-body); line-height: 1.6; color: var(--ink); text-wrap: pretty; }
 .score-l { font-size: var(--fs-body); color: var(--muted); font-variant-numeric: tabular-nums; }
 #r-body > .btn { width: 100%; }
 
@@ -422,8 +433,8 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
     animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important;
   }
   /* 不要動畫的人：像素圖停在吸氣那一格，方塊不跑 */
-  .pix-load *, .pix-load *::before { animation: none !important; }
-  .pix-lungs .f-out { opacity: 0; }
+  .pix-load *, .pix-art * { animation: none !important; }
+  .pix-art .f-out { opacity: 0; }
 }
 </style>
 </head>
@@ -1482,16 +1493,22 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
   const PIX_IN = ['.......tt.......', '.......tt.......', '.......tt.......', '......tttt......', '...###t..t###...',
     '..#hh#t..t#hh#..', '.##h##....##h##.', '.#####....#####.', '.#####....#####.', '.#####....#####.', '.######..######.',
     '.######..######.', '..ddddd..ddddd..'];
-  function pixFrame(rows, cls) {
+  function pixFrame(rows, cls, colors) {
     const g = svgEl('g', { class: cls });
     rows.forEach((row, y) => Array.from(row).forEach((c, x) => {
-      if (PIX_COLORS[c]) g.append(svgEl('rect', { x, y, width: 1, height: 1, fill: PIX_COLORS[c] }));
+      if (colors[c]) g.append(svgEl('rect', { x, y, width: 1, height: 1, fill: colors[c] }));
     }));
     return g;
   }
+  // 兩格輪流的像素圖：frames = [第一格, 第二格]，每格是等寬的字串陣列，seconds 是一輪的秒數
+  function pixArt(frames, colors, cls, seconds) {
+    const w = frames[0][0].length, ht = frames[0].length;
+    const svg = svgEl('svg', { class: 'pix-art ' + cls, viewBox: '0 0 ' + w + ' ' + ht, 'aria-hidden': 'true', style: '--pix-dur:' + seconds + 's' });
+    svg.append(pixFrame(frames[0], 'f-out', colors), pixFrame(frames[1], 'f-in', colors));
+    return svg;
+  }
   function pixLoading(message) {
-    const svg = svgEl('svg', { class: 'pix-lungs', viewBox: '0 0 16 13', 'aria-hidden': 'true' });
-    svg.append(pixFrame(PIX_OUT, 'f-out'), pixFrame(PIX_IN, 'f-in'));
+    const svg = pixArt([PIX_OUT, PIX_IN], PIX_COLORS, 'pix-lungs', 1.6);
     const bar = h('div', { class: 'pix-bar', 'aria-hidden': 'true' });
     for (let i = 0; i < 10; i++) bar.append(h('i', { style: 'animation-delay:' + (i * 0.2).toFixed(1) + 's' }));
     return h('div', { class: 'pix-load' }, svg, bar, h('p', { class: 'fine', role: 'status', text: message }));
@@ -1566,6 +1583,16 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
       b.setAttribute('aria-pressed', String(on));
     });
     $('b-confirm').disabled = false;
+    keepAboveBottom($('b-confirm'));
+  }
+
+  // 按鈕太靠近畫面最下方時往上捲一點，避開 iPhone Safari 最下方的工具列區（點那裡會先叫出工具列，要點第二次）
+  function keepAboveBottom(el) {
+    const gap = 110, r = el.getBoundingClientRect(), vh = window.innerHeight;
+    if (r.bottom > vh - gap && r.top > 0) {
+      const smooth = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+      window.scrollBy({ top: r.bottom - (vh - gap), behavior: smooth ? 'smooth' : 'auto' });
+    }
   }
 
   // 確認答案：馬上顯示對錯和解析（下載的題目裡就有答案），答案在背景存到後端。確認後不能再改
@@ -1655,16 +1682,45 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
   }
 
   // ---------- 一回練習的結果 ----------
+  // 分數等級：90 以上 S（獎盃閃閃）、75–89 A（星星跳）、60–74 B（心臟跳）、60 以下 C（肺深呼吸）
+  const sparkle = (rows, pts) => rows.map((r, y) => Array.from(r).map((c, x) => pts.some(p => p[0] === x && p[1] === y) ? 's' : c).join(''));
+  const TROPHY = ['................', '..yyyyyyyyyyyy..', 'y.yhyyyyyyyyyd.y', 'y.yhyyyyyyyyyd.y', '.yyhyyyyyyyyydy.',
+    '...hyyyyyyyyd...', '....yyyyyyyd....', '.....yyyyyd.....', '.......yd.......', '.......yd.......',
+    '......yyyd......', '....bbbbbbbb....', '....bbbbbbbb....'];
+  const PIX_TROPHY = [sparkle(TROPHY, [[0, 0], [14, 3], [1, 9], [13, 12]]), sparkle(TROPHY, [[15, 0], [0, 5], [14, 10], [2, 11]])];
+  const PIX_TROPHY_C = { y: '#f2c14e', h: '#fff1b8', d: '#c9962b', b: '#8a6d3b', s: '#ffd23f' };
+  const STAR = ['......y......', '.....yyy.....', '.....yhy.....', 'yyyyyyyyyyyyy', '.yyyyyyyyyyy.', '..yykyyykyy..',
+    '...yyyyyyy...', '...yykkkyy...', '..yyyy.yyyy..', '..yyy...yyy..', '.yy.......yy.'];
+  const PIX_STAR = [['.............', '.............'].concat(STAR, ['...ggggggg...']), STAR.concat(['.............', '.............', '.....ggg.....'])];
+  const PIX_STAR_C = { y: '#f5c542', h: '#fff1b8', k: '#5b4316', g: '#c9d3df' };
+  const PIX_HEART = [
+    ['...........', '...........', '..rr...rr..', '.rrrr.rrrr.', '.rhrrrrrrr.', '.rrrrrrrrr.', '..rrrrrrr..', '...rrrrr...', '....rdr....', '.....d.....', '...........'],
+    ['.rrr...rrr.', 'rrrrr.rrrrr', 'rrhrrrrrrrr', 'rhrrrrrrrrr', 'rrrrrrrrrrr', '.rrrrrrrrr.', '..rrrrrrr..', '...rrdrr...', '....rdr....', '.....d.....', '...........']];
+  const PIX_HEART_C = { r: '#e2577a', h: '#f7a8bc', d: '#b23c5d' };
+  function scoreTier(score) {
+    if (score >= 90) return { key: 's', rank: 'S', title: '太厲害了！', art: PIX_TROPHY, colors: PIX_TROPHY_C, sec: 1.2,
+      msg: '幾乎全部答對，臨床判斷很穩，繼續保持！' };
+    if (score >= 75) return { key: 'a', rank: 'A', title: '表現很棒！', art: PIX_STAR, colors: PIX_STAR_C, sec: 0.8,
+      msg: '大部分觀念都掌握了，看一下答錯的題目就更完整。' };
+    if (score >= 60) return { key: 'b', rank: 'B', title: '穩穩前進中', art: PIX_HEART, colors: PIX_HEART_C, sec: 0.9,
+      msg: '基本觀念已經有了，回頭看看答錯的題目，下一回會更好。' };
+    return { key: 'c', rank: 'C', title: '先深呼吸，再來一次', art: [PIX_OUT, PIX_IN], colors: PIX_COLORS, sec: 1.6,
+      msg: '這一回比較難沒關係，看完解析再練一回，一定會進步。' };
+  }
   function renderResult(name, res) {
     const total = Number(res.total) || 0, right = Number(res.correct) || 0;
     const score = total ? Math.round(right / total * 100) : 0;
     const advice = Array.isArray(res.advice) ? res.advice.filter(a => a && (a.title || a.content)) : [];
+    const tier = scoreTier(score);
     $('r-title').textContent = name;
     fill($('r-body'), [
       h('section', { class: 'card score', 'aria-label': '本回成績' },
-        h('span', { class: 'score-l', text: '第 ' + (Number(res.round) || '') + ' 回練習完成' }),
+        pixArt(tier.art, tier.colors, 'pix-' + tier.key, tier.sec),
+        h('div', { class: 'rank ' + tier.key }, h('b', { text: tier.rank }), h('span', { text: tier.title })),
+        h('span', { class: 'score-l round', text: '第 ' + (Number(res.round) || '') + ' 回練習完成' }),
         h('span', { class: 'score-n' }, String(score), h('small', { text: '分' })),
-        h('span', { class: 'score-l', text: '答對 ' + right + '／' + total + ' 題' })),
+        h('span', { class: 'score-l count', text: '答對 ' + right + '／' + total + ' 題' }),
+        h('p', { class: 'score-msg', text: tier.msg })),
       advice.length ? h('h3', { class: 'sec-title', text: '建議複習' }) : null,
       advice.map(a => h('article', { class: 'card mat' },
         a.title ? h('h3', { text: str(a.title) }) : null,
