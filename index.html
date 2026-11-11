@@ -302,8 +302,21 @@ input.secret { -webkit-text-security: disc; }
   .vp-t b { font-size: 20px; }
   .sv .vp-t b { font-size: 24px; }
 }
-.stem { margin: 4px 0 2px; font-size: var(--fs-title); line-height: 1.7; text-wrap: pretty; }
+/* 題幹：加底色和左邊色條，字也比選項大，和下面的選項分開 */
+.stem { margin: 4px 0 2px; padding: 14px 16px 15px; border-left: 4px solid #3b5b85; border-radius: var(--radius-sm);
+  background: #e2e9f3; color: var(--ink); font-size: 19px; font-weight: var(--w-em); line-height: 1.65; text-wrap: pretty; }
 .stem:focus { outline: none; }
+/* 下載中的像素小動畫：肺吸氣、吐氣兩格輪流，下面一排方塊跑燈 */
+.pix-load { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 40px 0 24px; }
+.pix-lungs { display: block; width: 128px; height: 104px; shape-rendering: crispEdges; }
+.pix-lungs .f-in { animation: pix-in 1.6s linear infinite; }
+.pix-lungs .f-out { animation: pix-out 1.6s linear infinite; }
+.pix-bar { display: flex; gap: 4px; }
+.pix-bar i { width: 10px; height: 10px; background: var(--line-strong); animation: pix-run 2s linear infinite; }
+.pix-load .fine { letter-spacing: .04em; }
+@keyframes pix-in { 0%, 49.9% { opacity: 0; } 50%, 100% { opacity: 1; } }
+@keyframes pix-out { 0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes pix-run { 0%, 9.9% { background: var(--accent); } 10%, 100% { background: var(--line-strong); } }
 .opts { display: flex; flex-direction: column; gap: 10px; }
 .opt {
   width: 100%; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px 12px; padding: 14px; text-align: left;
@@ -404,6 +417,9 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
   *:not(.spinner), *::before, *::after, ::backdrop {
     animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important;
   }
+  /* 不要動畫的人：像素圖停在吸氣那一格，方塊不跑 */
+  .pix-load *, .pix-load *::before { animation: none !important; }
+  .pix-lungs .f-out { opacity: 0; }
 }
 </style>
 </head>
@@ -1041,7 +1057,7 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
     current = name;
     navTo(1);
     $('t-title').textContent = name;
-    fill($('t-body'), h('p', { class: 'fine', role: 'status', text: '下載教材和題目中…' }));
+    fill($('t-body'), pixLoading('下載教材和題目中…'));
     show('v-topic');
     const res = await api('topic', { topic: name });
     if (current !== name || $('v-topic').hidden) return; // 已經離開這一頁
@@ -1451,6 +1467,30 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
     const n = document.createElementNS(SVG_NS, tag);
     Object.keys(attrs).forEach(k => n.setAttribute(k, attrs[k]));
     return n;
+  }
+
+  // ====== 下載中的像素小動畫 ======
+  // 每個字元是一格：t 氣管、# 肺、h 肺的亮面、d 肺的暗面、. 空白；兩格輪流顯示，看起來像在呼吸
+  const PIX_COLORS = { t: '#7aa7c7', '#': '#ee8aa0', h: '#f8c3cf', d: '#c95d76' };
+  const PIX_OUT = ['.......tt.......', '.......tt.......', '.......tt.......', '......tttt......', '....##t..t##....',
+    '...#h#t..t#h#...', '..##h#....#h##..', '..####....####..', '..####....####..', '..####....####..', '..#####..#####..',
+    '...dddd..dddd...', '................'];
+  const PIX_IN = ['.......tt.......', '.......tt.......', '.......tt.......', '......tttt......', '...###t..t###...',
+    '..#hh#t..t#hh#..', '.##h##....##h##.', '.#####....#####.', '.#####....#####.', '.#####....#####.', '.######..######.',
+    '.######..######.', '..ddddd..ddddd..'];
+  function pixFrame(rows, cls) {
+    const g = svgEl('g', { class: cls });
+    rows.forEach((row, y) => Array.from(row).forEach((c, x) => {
+      if (PIX_COLORS[c]) g.append(svgEl('rect', { x, y, width: 1, height: 1, fill: PIX_COLORS[c] }));
+    }));
+    return g;
+  }
+  function pixLoading(message) {
+    const svg = svgEl('svg', { class: 'pix-lungs', viewBox: '0 0 16 13', 'aria-hidden': 'true' });
+    svg.append(pixFrame(PIX_OUT, 'f-out'), pixFrame(PIX_IN, 'f-in'));
+    const bar = h('div', { class: 'pix-bar', 'aria-hidden': 'true' });
+    for (let i = 0; i < 10; i++) bar.append(h('i', { style: 'animation-delay:' + (i * 0.2).toFixed(1) + 's' }));
+    return h('div', { class: 'pix-load' }, svg, bar, h('p', { class: 'fine', role: 'status', text: message }));
   }
 
   // 機型填 Dräger／Evita／V300／V600 畫成 Dräger 風格，填 SERVO 畫成 SERVO 風格；其他機型或沒有數值就照一般欄位列出
