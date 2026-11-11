@@ -304,7 +304,7 @@ input.secret { -webkit-text-security: disc; }
 }
 /* 題幹：加底色和左邊色條，字也比選項大，和下面的選項分開 */
 .stem { margin: 4px 0 2px; padding: 14px 16px 15px; border-left: 4px solid #3b5b85; border-radius: var(--radius-sm);
-  background: #e2e9f3; color: var(--ink); font-size: 19px; font-weight: var(--w-em); line-height: 1.65; text-wrap: pretty; }
+  background: #e2e9f3; color: var(--ink); font-size: 17px; font-weight: var(--w-em); line-height: 1.65; text-wrap: pretty; }
 .stem:focus { outline: none; }
 /* 下載中的像素小動畫：肺吸氣、吐氣兩格輪流，下面一排方塊跑燈 */
 .pix-load { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 40px 0 24px; }
@@ -353,6 +353,10 @@ input.secret { -webkit-text-security: disc; }
 .fb-body h4:first-child { margin-top: 0; }
 .fb-body p { margin: 0; line-height: 1.75; text-wrap: pretty; }
 .fb-body .src { margin: 4px 0 0; line-height: 1.55; }
+/* 其他選項的說明：前面標選項代號 */
+.fb-other { display: flex; gap: 10px; align-items: flex-start; }
+.fb-k { flex: none; display: grid; place-items: center; width: 24px; height: 24px; margin-top: 2px; border: 1px solid var(--line-strong); border-radius: 50%; background: var(--surface-2); font-size: var(--fs-small); font-weight: var(--w-head); line-height: 1; color: var(--muted); }
+.fb-other span { min-width: 0; }
 .mat .src { margin: 4px 0 0; line-height: 1.55; }
 
 /* 一回練習的結果 */
@@ -1576,6 +1580,15 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
     showFeedback(q, qz.picked, qz.picked === str(q.answer));
   }
 
+  // 誘答選項說明每一行依錯誤選項的順序寫；行數和錯誤選項數一樣時，前面標出選項代號，不一樣就照原文列出
+  function otherNotes(text, ans) {
+    const lines = str(text).split(/\n+/).map(s => s.trim()).filter(Boolean);
+    if (!lines.length) return null;
+    const keys = optButtons().map(b => b.getAttribute('data-key')).filter(k => k !== ans);
+    if (keys.length !== lines.length) return lines.map(s => h('p', { text: s }));
+    return lines.map((s, i) => h('p', { class: 'fb-other' }, h('b', { class: 'fb-k', 'aria-label': '選項 ' + keys[i], text: keys[i] }), h('span', { text: s })));
+  }
+
   function showFeedback(q, picked, correct) {
     const qz = quiz;
     const ans = str(q.answer);
@@ -1588,7 +1601,7 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
       else if (k === picked) { b.classList.add('is-bad'); mark.replaceChildren(icon('cross'), '你的答案'); }
     });
     const fb = $('q-fb');
-    const others = paras(q.distractors);
+    const others = otherNotes(q.distractors, ans);
     fb.className = 'fb ' + (correct ? 'ok' : 'bad');
     fill(fb, [
       h('div', { class: 'fb-head' },
