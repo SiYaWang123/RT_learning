@@ -83,7 +83,14 @@ button, label { -webkit-tap-highlight-color: transparent; }
 .btn:disabled { cursor: not-allowed; color: #7b8a9f; background: var(--surface-2); border-color: var(--line); box-shadow: none; }
 .btn.primary:disabled { color: #66768c; background: #dbe3ec; border-color: #dbe3ec; }
 .btn[aria-busy="true"] { cursor: progress; color: var(--muted); }
-.btn.primary[aria-busy="true"] { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); opacity: .7; }
+.btn.primary[aria-busy="true"] { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+/* 連線中：按鈕裡的像素小螢幕，容積控制的壓力波（尖峰、平台、回到 PEEP）一直往左跑 */
+.btn[aria-busy="true"], .link-btn[aria-busy="true"] { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.link-btn[aria-busy="true"] { opacity: 1; }
+.pix-busy { flex: none; display: block; width: 60px; height: 22px; shape-rendering: crispEdges; }
+.link-btn .pix-busy { width: 45px; height: 16.5px; }
+.pix-busy .wave { animation: busy-wave 1.6s steps(16) infinite; }
+@keyframes busy-wave { to { transform: translateX(-16px); } }
 .link-btn:disabled { opacity: .55; cursor: progress; }
 .link-btn {
   flex: none; min-height: 44px; padding: 6px 10px; border: 0; border-radius: var(--radius-sm);
@@ -444,7 +451,7 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
     animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important;
   }
   /* 不要動畫的人：像素圖停在吸氣那一格，方塊不跑 */
-  .pix-load *, .pix-art * { animation: none !important; }
+  .pix-load *, .pix-art *, .pix-busy * { animation: none !important; }
   .pix-art .f-out { opacity: 0; }
 }
 </style>
@@ -764,16 +771,19 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
     toastTimer = setTimeout(() => { t.hidden = true; }, 3500);
   }
 
-  // 等後端回應時，按鈕不能再按，並顯示「連線中…」
+  // 等後端回應時，按鈕不能再按，並顯示「連線中…」和跑動的壓力波；等超過 6 秒改成「再等一下下…」
   async function busy(btn, fn) {
     if (btn.disabled) return undefined;
     const label = btn.textContent;
     btn.disabled = true;
     btn.setAttribute('aria-busy', 'true');
-    btn.textContent = '連線中…';
+    const word = h('span', { text: '連線中…' });
+    fill(btn, [busyWave(), word]);
+    const slow = setTimeout(() => { word.textContent = '再等一下下…'; }, 6000);
     try {
       return await fn();
     } finally {
+      clearTimeout(slow);
       btn.disabled = false;
       btn.removeAttribute('aria-busy');
       btn.textContent = label;
@@ -1545,6 +1555,26 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
     ['gggggggggggggggg', shift ? 'gkyykbbkkkkkkkkg' : 'gkbbkyykkkkkkkkg', '.gggggggggggggg.', '......gggg......', '....gggggggg....']);
   const PIX_VENT = [ventFrame(0), ventFrame(4)];
   const PIX_VENT_C = { g: '#5b6b7f', s: '#1d3550', w: '#7fe3c4', k: '#c9d3df', b: '#ee8aa0', y: '#f5c542' };
+  // 按鈕「連線中」的小螢幕：容積控制的壓力－時間波形，一格是一個像素
+  // BUSY_P 是每一欄的高度（0 在最上面＝尖峰壓；2 是平台壓；6 是 PEEP 基線），一個週期 16 欄；最下面一排虛線代表 0
+  const BUSY_P = [6, 5, 4, 3, 2, 1, 0, 2, 2, 2, 6, 6, 6, 6, 6, 6];
+  function busyWave() {
+    const W = 28, H = 9, per = BUSY_P.length;
+    const svg = svgEl('svg', { class: 'pix-busy', viewBox: '0 0 ' + (W + 2) + ' ' + (H + 2), 'aria-hidden': 'true' });
+    svg.append(svgEl('rect', { width: W + 2, height: H + 2, fill: '#5b6b7f' }), svgEl('rect', { x: 1, y: 1, width: W, height: H, fill: '#1d3550' }));
+    for (let x = 1; x <= W; x += 2) svg.append(svgEl('rect', { x, y: H, width: 1, height: 1, fill: '#33557a' }));
+    const view = svgEl('svg', { x: 1, y: 1, width: W, height: H, viewBox: '0 0 ' + W + ' ' + H });  // 裡面這層會把超出螢幕的波形切掉
+    const wave = svgEl('g', { class: 'wave' });
+    for (let r = 0; r < Math.ceil(W / per) + 1; r++) {
+      BUSY_P.forEach((y1, x) => {
+        const y0 = BUSY_P[(x + per - 1) % per];  // 和前一欄接起來（壓力掉下來時畫成直線）
+        for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) wave.append(svgEl('rect', { x: r * per + x, y, width: 1, height: 1, fill: '#f5c542' }));
+      });
+    }
+    view.append(wave);
+    svg.append(view);
+    return svg;
+  }
   function pixLoading(message) {
     const svg = pixArt([PIX_OUT, PIX_IN], PIX_COLORS, 'pix-lungs', 1.6);
     const bar = h('div', { class: 'pix-bar', 'aria-hidden': 'true' });
