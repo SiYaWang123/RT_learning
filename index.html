@@ -109,10 +109,10 @@ input.secret { -webkit-text-security: disc; }
 .login { justify-content: center; gap: 20px; padding: 32px 16px 40px; }
 .brand { text-align: center; }
 .brand-mark {
-  width: 56px; height: 56px; margin: 0 auto 12px; display: grid; place-items: center;
+  width: 84px; height: 84px; margin: 0 auto 14px; display: grid; place-items: center;
   border-radius: var(--radius); background: var(--accent-soft); color: var(--accent-text);
 }
-.brand-mark svg { width: 30px; height: 30px; }
+.brand-mark .pix-art { width: 64px; height: 52px; }  /* 會呼吸的像素肺 */
 .brand h1 { margin: 0; font-size: var(--fs-page); line-height: 1.35; letter-spacing: .01em; text-wrap: balance; }
 .brand p { margin: 8px 0 0; font-size: var(--fs-body); color: var(--muted); }
 .form { display: flex; flex-direction: column; gap: 6px; padding: 20px 16px; }
@@ -147,6 +147,9 @@ input.secret { -webkit-text-security: disc; }
 /* 結果頁最下面多留空間：iPhone Safari 點畫面最下方會先叫出工具列，按鈕要能捲到離底部遠一點 */
 #r-body { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
 .home > .sec-title { margin: 8px 0 -6px; }
+.hello { display: flex; align-items: center; gap: 12px; }
+.hello-t { flex: 1; min-width: 0; }
+.hello-pix .pix-art { width: 64px; height: 48px; }  /* 像素呼吸器，螢幕上的波形會跑 */
 .hello h2 { margin: 0; font-size: var(--fs-page); line-height: 1.3; letter-spacing: .01em; }
 .hello p { margin: 4px 0 0; font-size: var(--fs-small); color: var(--muted); }
 .note-box { margin: 0; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--warn-soft); color: var(--warn); font-size: var(--fs-small); font-weight: var(--w-em); line-height: 1.55; }
@@ -209,6 +212,14 @@ input.secret { -webkit-text-security: disc; }
 .topic-card h3 { margin: 0; font-size: var(--fs-title); line-height: 1.4; }
 .topic-card .meta { margin: 0; font-size: var(--fs-small); color: var(--muted); font-variant-numeric: tabular-nums; }
 .topic-card .btn { width: 100%; margin-top: 12px; }
+/* 歷次成績：只有回數、日期、分數，不含題目和答案 */
+.hist { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.hist li { display: grid; grid-template-columns: 4.5em 3.2em 1fr 4.4em; white-space: nowrap; align-items: center; gap: 8px; font-size: var(--fs-small); color: var(--muted); font-variant-numeric: tabular-nums; }
+.hist li b { text-align: right; font-size: var(--fs-body); color: var(--ink); }
+.hist .bar-in { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.hist .bar-in i { display: block; height: 100%; border-radius: 999px; background: var(--accent); }
+.hist li.best b { color: var(--accent-text); }
+.score-diff { margin: 6px 0 0; font-size: var(--fs-small); font-weight: var(--w-em); color: var(--accent-text); }
 
 /* 教材與複習建議 */
 .mat { padding: 18px 16px; }
@@ -454,11 +465,9 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
   <!-- 登入 -->
   <section id="v-login" class="view login" aria-labelledby="login-h">
     <div class="brand">
-      <div class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>
-      </div>
+      <div id="brand-mark" class="brand-mark" aria-hidden="true"></div>
       <h1 id="login-h">呼吸治療臨床情境練習</h1>
-      <p>請輸入研究人員給你的帳號和密碼</p>
+      <p>請輸入臨床人員給你的帳號和密碼</p>
     </div>
     <form id="f-login" class="card form" novalidate>
       <label for="in-account">帳號</label>
@@ -468,7 +477,7 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
       <p id="login-error" class="err" role="alert"></p>
       <button id="b-login" class="btn primary" type="submit">登入</button>
     </form>
-    <p class="fine">帳號和密碼印在研究人員給你的紙條上，忘記了請聯絡研究人員。</p>
+    <p class="fine">帳號和密碼印在臨床人員給你的紙條上，忘記了請聯絡臨床人員。</p>
     <noscript><p class="err">請開啟瀏覽器的 JavaScript 才能使用。</p></noscript>
   </section>
 
@@ -481,8 +490,11 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
     </header>
     <div class="home">
       <div class="hello">
-        <h2>學習首頁</h2>
-        <p id="h-hint"></p>
+        <div class="hello-t">
+          <h2>學習首頁</h2>
+          <p id="h-hint"></p>
+        </div>
+        <span id="h-pix" class="hello-pix" aria-hidden="true"></span>
       </div>
       <p id="h-preview" class="note-box" hidden>試跑帳號：看得到還沒審查通過的題目。</p>
       <button id="h-resume" class="resume" type="button" hidden>
@@ -1137,8 +1149,27 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
         h('h3', { id: 't-m-h', text: '重點教材' }),
         h('p', { class: 'meta', text: mats.length ? '共 ' + mats.length + ' 段' : '教材準備中' }),
         mats.length ? h('button', { type: 'button', id: 'b-read', class: 'btn', text: '閱讀教材', onclick: () => openMaterials(name) }) : null),
+      historyCard(t),
       data.version ? h('p', { class: 'fine version', text: '題庫版本 ' + data.version }) : null
     ]);
+  }
+
+  // 歷次成績（新的在上面）；最高分那一回標出來
+  function historyCard(t) {
+    const list = (Array.isArray(t.history) ? t.history : []).filter(x => x && x.score !== null && x.score !== undefined);
+    if (!list.length) return null;
+    const best = Math.max.apply(null, list.map(x => Number(x.score) || 0));
+    const md = ms => { if (!ms) return ''; const d = new Date(Number(ms)); return (d.getMonth() + 1) + '/' + d.getDate(); };
+    return h('section', { class: 'card topic-card', 'aria-labelledby': 't-h-h' },
+      h('h3', { id: 't-h-h', text: '歷次成績' }),
+      h('ol', { class: 'hist' }, list.slice().sort((a, b) => b.round - a.round).map(x => {
+        const sc = Number(x.score) || 0;
+        return h('li', { class: sc === best ? 'best' : '' },
+          h('span', { text: '第 ' + x.round + ' 回' }),
+          h('span', { text: md(x.time) }),
+          h('span', { class: 'bar-in', 'aria-hidden': 'true' }, h('i', { style: 'width:' + sc + '%' })),
+          h('b', { text: sc + ' 分' }));
+      })));
   }
 
   // ---------- 重點教材 ----------
@@ -1508,12 +1539,20 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
     svg.append(pixFrame(frames[0], 'f-out', colors), pixFrame(frames[1], 'f-in', colors));
     return svg;
   }
+  // 首頁的像素呼吸器：螢幕上的壓力波形兩格輪流往左移
+  const VENT_SCREEN = ['ssssssssssssss', 'sswwwsssswwwss', 'sswswsssswswss', 'sswswsssswswss', 'wwwswwwwwwswww', 'ssssssssssssss'];
+  const ventFrame = shift => ['.gggggggggggggg.'].concat(VENT_SCREEN.map(r => 'g' + r.slice(shift) + r.slice(0, shift) + 'g'),
+    ['gggggggggggggggg', shift ? 'gkyykbbkkkkkkkkg' : 'gkbbkyykkkkkkkkg', '.gggggggggggggg.', '......gggg......', '....gggggggg....']);
+  const PIX_VENT = [ventFrame(0), ventFrame(4)];
+  const PIX_VENT_C = { g: '#5b6b7f', s: '#1d3550', w: '#7fe3c4', k: '#c9d3df', b: '#ee8aa0', y: '#f5c542' };
   function pixLoading(message) {
     const svg = pixArt([PIX_OUT, PIX_IN], PIX_COLORS, 'pix-lungs', 1.6);
     const bar = h('div', { class: 'pix-bar', 'aria-hidden': 'true' });
     for (let i = 0; i < 10; i++) bar.append(h('i', { style: 'animation-delay:' + (i * 0.2).toFixed(1) + 's' }));
     return h('div', { class: 'pix-load' }, svg, bar, h('p', { class: 'fine', role: 'status', text: message }));
   }
+  fill($('brand-mark'), pixArt([PIX_OUT, PIX_IN], PIX_COLORS, 'pix-brand', 3.2));
+  fill($('h-pix'), pixArt(PIX_VENT, PIX_VENT_C, 'pix-vent', 1.2));
 
   // 機型填 Dräger／Evita／V300／V600 畫成 Dräger 風格，填 SERVO 畫成 SERVO 風格；其他機型或沒有數值就照一般欄位列出
   function ventPanel(get) {
@@ -1720,6 +1759,10 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
       t.rounds = (Number(t.rounds) || 0) + 1;
       if (score !== null) t.best = Math.max(t.best === null || t.best === undefined ? 0 : Number(t.best), score);
       t.last = { round: round, finished: true };
+      if (score !== null) {
+        t.history = (Array.isArray(t.history) ? t.history : []).filter(x => Number(x.round) !== round);
+        t.history.push({ round: round, score: score, correct: Number(res.correct) || 0, total: total, time: Date.now() });
+      }
     }
     return res;
   }
@@ -1740,6 +1783,16 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
     ['...........', '...........', '..rr...rr..', '.rrrr.rrrr.', '.rhrrrrrrr.', '.rrrrrrrrr.', '..rrrrrrr..', '...rrrrr...', '....rdr....', '.....d.....', '...........'],
     ['.rrr...rrr.', 'rrrrr.rrrrr', 'rrhrrrrrrrr', 'rhrrrrrrrrr', 'rrrrrrrrrrr', '.rrrrrrrrr.', '..rrrrrrr..', '...rrdrr...', '....rdr....', '.....d.....', '...........']];
   const PIX_HEART_C = { r: '#e2577a', h: '#f7a8bc', d: '#b23c5d' };
+  // 和上一回比較的一句話；第 1 回沒有可以比的就不顯示
+  function diffNote(name, round, score) {
+    const t = topicStatus(name) || {};
+    const prev = (Array.isArray(t.history) ? t.history : []).filter(x => Number(x.round) < round && x.score !== null && x.score !== undefined)
+      .sort((a, b) => b.round - a.round)[0];
+    if (!prev) return null;
+    const d = score - Number(prev.score);
+    const text = d > 0 ? '比上一回進步 ' + d + ' 分！' : d === 0 ? '和上一回一樣是 ' + score + ' 分' : '比上一回少 ' + (-d) + ' 分，看看答錯的題目再試一次';
+    return h('p', { class: 'score-diff', text: text });
+  }
   function scoreTier(score) {
     if (score >= 90) return { key: 's', rank: 'S', title: '太厲害了！', art: PIX_TROPHY, colors: PIX_TROPHY_C, sec: 1.2,
       msg: '幾乎全部答對，臨床判斷很穩，繼續保持！' };
@@ -1763,6 +1816,7 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
         h('span', { class: 'score-l round', text: '第 ' + (Number(res.round) || '') + ' 回練習完成' }),
         h('span', { class: 'score-n' }, String(score), h('small', { text: '分' })),
         h('span', { class: 'score-l count', text: '答對 ' + right + '／' + total + ' 題' }),
+        diffNote(name, Number(res.round) || 0, score),
         h('p', { class: 'score-msg', text: tier.msg })),
       advice.length ? h('h3', { class: 'sec-title', text: '建議複習' }) : null,
       advice.map(a => h('article', { class: 'card mat' },
