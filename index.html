@@ -339,6 +339,12 @@ input.secret { -webkit-text-security: disc; }
 @keyframes pix-in { 0%, 49.9% { opacity: 0; } 50%, 100% { opacity: 1; } }
 @keyframes pix-out { 0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0; } }
 @keyframes pix-run { 0%, 9.9% { background: var(--accent); } 10%, 100% { background: var(--line-strong); } }
+/* 重新整理後「連線中」的肺寶寶：有眼睛和腮紅，邊呼吸邊上下跳，偶爾眨眼 */
+.l-pix:not([hidden]) { display: block; }
+.pix-baby { width: 96px; height: 78px; animation: pix-bob 1.6s linear infinite; }
+.pix-baby .blink { opacity: 0; animation: pix-blink 3.2s linear infinite; }
+@keyframes pix-bob { 0%, 49.9% { transform: translateY(2px); } 50%, 100% { transform: translateY(-4px); } }
+@keyframes pix-blink { 0%, 91.9% { opacity: 0; } 92%, 97.9% { opacity: 1; } 98%, 100% { opacity: 0; } }
 .opts { display: flex; flex-direction: column; gap: 10px; }
 .opt {
   width: 100%; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px 12px; padding: 14px; text-align: left;
@@ -451,7 +457,7 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
     animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important;
   }
   /* 不要動畫的人：像素圖停在吸氣那一格，方塊不跑 */
-  .pix-load *, .pix-art *, .pix-busy * { animation: none !important; }
+  .pix-load *, .pix-art *, .pix-busy *, .pix-baby { animation: none !important; }
   .pix-art .f-out { opacity: 0; }
 }
 </style>
@@ -461,7 +467,7 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
 
   <!-- 載入中（重新整理網頁後，用上次的登入繼續） -->
   <section id="v-loading" class="view center" hidden>
-    <div id="l-spin" class="spinner" aria-hidden="true"></div>
+    <div id="l-spin" class="l-pix" aria-hidden="true"></div>
     <p id="l-msg" class="fine" role="status">連線中…</p>
     <div id="l-actions" class="row" hidden>
       <button id="b-retry" class="btn primary" type="button">再試一次</button>
@@ -1581,6 +1587,19 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
     for (let i = 0; i < 10; i++) bar.append(h('i', { style: 'animation-delay:' + (i * 0.2).toFixed(1) + 's' }));
     return h('div', { class: 'pix-load' }, svg, bar, h('p', { class: 'fine', role: 'status', text: message }));
   }
+  // 肺寶寶：在肺上加眼睛（k）和腮紅（p），再蓋一層和肺同色的方塊當眨眼
+  const BABY_COLORS = Object.assign({ k: '#3a1f2b', p: '#f6b3c4' }, PIX_COLORS);
+  const EYES = [3, 5, 10, 12], CHEEKS = [2, 13];
+  const babyFace = rows => rows.map((row, y) => Array.from(row).map((c, x) =>
+    y === 7 && EYES.includes(x) ? 'k' : y === 8 && CHEEKS.includes(x) ? 'p' : c).join(''));
+  function babyLung() {
+    const svg = pixArt([babyFace(PIX_OUT), babyFace(PIX_IN)], BABY_COLORS, 'pix-baby', 1.6);
+    const lid = svgEl('g', { class: 'blink' });
+    EYES.forEach(x => lid.append(svgEl('rect', { x, y: 7, width: 1, height: 1, fill: PIX_COLORS['#'] })));
+    svg.append(lid);
+    return svg;
+  }
+  fill($('l-spin'), babyLung());
   fill($('brand-mark'), pixArt([PIX_OUT, PIX_IN], PIX_COLORS, 'pix-brand', 3.2));
   fill($('h-pix'), pixArt(PIX_VENT, PIX_VENT_C, 'pix-vent', 1.2));
 
