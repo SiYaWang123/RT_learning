@@ -156,7 +156,8 @@ input.secret { -webkit-text-security: disc; }
 .home > .sec-title { margin: 8px 0 -6px; }
 .hello { display: flex; align-items: center; gap: 12px; }
 .hello-t { flex: 1; min-width: 0; }
-.hello-pix .pix-art { width: 64px; height: 48px; }  /* 像素呼吸器，螢幕上的波形會跑 */
+.hello-pix .pix-art { width: 102px; height: 72px; }  /* 像素呼吸治療師和呼吸器：揮手、眨眼，螢幕上的波形會跑 */
+.pix-rt .blink { opacity: 0; animation: pix-blink 4s linear infinite; }
 .hello h2 { margin: 0; font-size: var(--fs-page); line-height: 1.3; letter-spacing: .01em; }
 .hello p { margin: 4px 0 0; font-size: var(--fs-small); color: var(--muted); }
 .note-box { margin: 0; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--warn-soft); color: var(--warn); font-size: var(--fs-small); font-weight: var(--w-em); line-height: 1.55; }
@@ -1555,12 +1556,20 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
     svg.append(pixFrame(frames[0], 'f-out', colors), pixFrame(frames[1], 'f-in', colors));
     return svg;
   }
-  // 首頁的像素呼吸器：螢幕上的壓力波形兩格輪流往左移
-  const VENT_SCREEN = ['ssssssssssssss', 'sswwwsssswwwss', 'sswswsssswswss', 'sswswsssswswss', 'wwwswwwwwwswww', 'ssssssssssssss'];
-  const ventFrame = shift => ['.gggggggggggggg.'].concat(VENT_SCREEN.map(r => 'g' + r.slice(shift) + r.slice(0, shift) + 'g'),
-    ['gggggggggggggggg', shift ? 'gkyykbbkkkkkkkkg' : 'gkbbkyykkkkkkkkg', '.gggggggggggggg.', '......gggg......', '....gggggggg....']);
-  const PIX_VENT = [ventFrame(0), ventFrame(4)];
-  const PIX_VENT_C = { g: '#5b6b7f', s: '#1d3550', w: '#7fe3c4', k: '#c9d3df', b: '#ee8aa0', y: '#f5c542' };
+  // 首頁的像素小動畫：穿酒紅色制服的呼吸治療師站在呼吸器旁揮手。兩格輪流：揮手、螢幕波形往左移；另外蓋一層和皮膚同色的方塊當眨眼
+  // 字元對應顏色見 PIX_RT_C（h 頭髮、f 皮膚、m 口罩、r 酒紅制服、p 褲子、w 識別證、G 呼吸器外框、S 螢幕、Y 波形、A 支撐臂、I 吸氣端管路、E 吐氣端管路、y Y 型接頭…）
+  const PIX_RT = [
+    ['...hhhhhhh....GGGGGGGGGGGGGGGG....', '..hhhhhhhhh...GSSSSSSSSSSSSSSG....', '..hhhhhhhhh...GSSYYYSSSSYYYSSG....', '..hhhhhhhhh...GSSYSYSSSSYSYSSG....', '..hfffffffh...GSSYSYSSSSYSYSSG....', '..hfefffefh...GYYYSYYYYYYSYYYG....', '..hcmmmmmch...GSSSSSSSSSSSSSSG.AA.', 'ffhhmMMMmhh...GGGGGGGGGGGGGGGG..Ay', 'f.hh.mmm.hh....GkkkkkkkkkkkoG..yy.', 'r....fff............GKKG......AEI.', '.r.rrfffrr.......GGGGGGGGGG..A.EI.', '.rrrrrnrrrr......GkkkkkkkkG.A..EI.', '..rrrrnrrrr......GkbbbbbbkGA...EI.', '..rrrrwwrrr......GkbwbbwbkG....EI.', '..rrrrwwrrr......GkbwbbwbkG....EI.', '..rrrrrrrrq......GkbIbbEbkG....EI.', '...rrrrrrrf......GkkIkkEkkG....EI.', '...ppppppp.......GKKIKKKEEEEEEE.I.', '...ppppppp........GkIkkkkG......I.', '...ppp.ppp........GkkIIIIIIIIIII..', '...ppp.ppp........GKKKKKKG........', '...ppp.ppp.......GGGGGGGGGG.......', '...ppp.ppp.......G........G.......', '..ssss.ssss.....OO........OO......'],
+    ['...hhhhhhh....GGGGGGGGGGGGGGGG....', '..hhhhhhhhh...GSSSSSSSSSSSSSSG....', '..hhhhhhhhh...GYSSSSYYYSSSSYYG....', '..hhhhhhhhh...GYSSSSYSYSSSSYSG....', '..hfffffffh...GYSSSSYSYSSSSYSG....', '..hfefffefh...GYYYYYYSYYYYYYSG....', '.fhcmmmmmch...GSSSSSSSSSSSSSSG.AA.', '.fhhmMMMmhh...GGGGGGGGGGGGGGGG..Ay', '.ffh.mmm.hh....GkkkkkkkkkkkoG..yy.', '.r...fff............GKKG......AEI.', '.r.rrfffrr.......GGGGGGGGGG..A.EI.', '.rrrrrnrrrr......GkkkkkkkkG.A..EI.', '..rrrrnrrrr......GkbbbbbbkGA...EI.', '..rrrrwwrrr......GkbwbbwbkG....EI.', '..rrrrwwrrr......GkbwbbwbkG....EI.', '..rrrrrrrrq......GkbIbbEbkG....EI.', '...rrrrrrrf......GkkIkkEkkG....EI.', '...ppppppp.......GKKIKKKEEEEEEE.I.', '...ppppppp........GkIkkkkG......I.', '...ppp.ppp........GkkIIIIIIIIIII..', '...ppp.ppp........GKKKKKKG........', '...ppp.ppp.......GGGGGGGGGG.......', '...ppp.ppp.......G........G.......', '..ssss.ssss.....OO........OO......']];
+  const PIX_RT_C = {'A': '#9aa6b5', 'E': '#8fd3f2', 'G': '#7b8a9e', 'I': '#3d9bd6', 'K': '#c9d3df', 'M': '#6fb2dc', 'O': '#5b6b7f', 'S': '#1d3550', 'Y': '#7fe3c4', 'b': '#bfe0f2', 'c': '#f4a7b4', 'e': '#2b1d24', 'f': '#f6d3bb', 'h': '#3a2a33', 'k': '#e9eef4', 'm': '#9fd0ee', 'n': '#e0566f', 'o': '#f5c542', 'p': '#4a1626', 'q': '#6e1a32', 'r': '#8c2340', 's': '#2f2a33', 'w': '#ffffff', 'y': '#ffffff'};
+  const RT_EYES = [[4, 5], [8, 5]];  // [x, y]
+  function rtScene() {
+    const svg = pixArt(PIX_RT, PIX_RT_C, 'pix-rt', 1.2);
+    const lid = svgEl('g', { class: 'blink' });
+    RT_EYES.forEach(p => lid.append(svgEl('rect', { x: p[0], y: p[1], width: 1, height: 1, fill: PIX_RT_C.f })));
+    svg.append(lid);
+    return svg;
+  }
   // 按鈕「連線中」的小螢幕：容積控制的壓力－時間波形，一格是一個像素
   // BUSY_P 是每一欄的高度（0 在最上面＝尖峰壓；2 是平台壓；6 是 PEEP 基線），一個週期 16 欄；最下面一排虛線代表 0
   const BUSY_P = [6, 5, 4, 3, 2, 1, 0, 2, 2, 2, 6, 6, 6, 6, 6, 6];
@@ -1601,7 +1610,7 @@ dialog[open]::backdrop { animation: fade-in .2s ease-out both; }
   }
   fill($('l-spin'), babyLung());
   fill($('brand-mark'), pixArt([PIX_OUT, PIX_IN], PIX_COLORS, 'pix-brand', 3.2));
-  fill($('h-pix'), pixArt(PIX_VENT, PIX_VENT_C, 'pix-vent', 1.2));
+  fill($('h-pix'), rtScene());
 
   // 機型填 Dräger／Evita／V300／V600 畫成 Dräger 風格，填 SERVO 畫成 SERVO 風格；其他機型或沒有數值就照一般欄位列出
   function ventPanel(get) {
